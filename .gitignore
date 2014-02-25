@@ -1,3 +1,4 @@
 *.pyc
 custom_settings.py
-
+*.sqlite
+__pycache__

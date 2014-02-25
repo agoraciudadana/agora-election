@@ -19,6 +19,6 @@ And launch the test/development server:
 
 You'd also need to launch in another terminal celery:
 
-    $  celery -A app worker --loglevel=info
+    $ celery -A app worker --loglevel=info
 
 Please read flask and celery documentation for more details on how to do a proper production deployment.
