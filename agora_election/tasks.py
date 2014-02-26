@@ -1,11 +1,61 @@
-from app import app
+# -*- coding: utf-8 -*-
+#
+# This file is part of agora-election.
+# Copyright (C) 2013  Eduardo Robles Elvira <edulix AT agoravoting DOT com>
 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from datetime import datetime
+from flask.ext.babel import gettext, ngettext
+
+from app import app, app_flask
 from sms import SMSProvider
 
 @app.task
-def send_sms(receiver, content):
+def send_sms(msg_id):
     '''
     Sends an sms with a given content to the receiver
     '''
+    from app import db
+    from models import Message
+
+    # get the msg
+    msg = db.session.query(Message)\
+        .filter(Message.id == msg_id).first()
+    if msg is None:
+        raise Exception("Message with id = %d not found" % msg_id)
+    if msg.status != "queued":
+        raise Exception("Message msg id = %d is not in "
+            "queued status, but '%s'" % (msg_id, msg.status))
+
+    # forge the message using the token
+    server_name = app_flask.config.get("SERVER_NAME", "")
+    content = gettext(
+        "%(server_name)s - your token is: '%(token)s",
+        token=msg.token, server_name=server_name)
+
+    # update status
+    msg.status = "sent"
+    msg.content = content
+    msg.modified = datetime.utcnow()
+    voter = msg.voters.first()
+    voter.status = "sms-sent"
+    voter.modified = datetime.utcnow()
+    db.session.add(msg)
+    db.session.add(voter)
+    db.session.commit()
+
+    # actually send the sms
     provider = SMSProvider.get_instance()
-    provider.send_sms(receiver, content)
+    provider.send_sms(msg.tlf, content)

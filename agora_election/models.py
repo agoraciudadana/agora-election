@@ -19,32 +19,120 @@
 from app import db
 from datetime import datetime
 
-class Message(db.Model):
+class Voter(db.Model):
     '''
-    Represents an message
+    Represents a voter for an election
     '''
-    __tablename__ = 'message'
+    __tablename__ = 'voter'
+
+    id = db.Column(db.Integer, db.Sequence('voter_id_seq'), primary_key=True)
+
+    election_id = db.Column(db.Integer, index=True)
+
+    created = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    modified = db.Column(db.DateTime, default=datetime.utcnow)
+
+    ip = db.Column(db.String(45), index=True)
+
+    tlf = db.Column(db.String(20), index=True)
+
+    first_name = db.Column(db.String(60))
+
+    last_name = db.Column(db.String(100))
+
+    email = db.Column(db.String(140))
+
+    lang_code = db.Column(db.String(6))
+
+    receive_mail_updates = db.Column(db.Boolean)
+
+    age = db.Column(db.Integer)
+
+    token_guesses = db.Column(db.Integer, default=0)
+
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'))
+
+    message = db.relationship('Message',
+        backref=db.backref('voters', lazy='dynamic'))
+
+    is_active = db.Column(db.Boolean)
+
+    # created|sms-sent|authenticated|voting|voted
+    status = db.Column(db.String(16), index=True)
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __repr__(self):
+        return '<Voter %r>' % self.id
+
+
+class ColorList(db.Model):
+    '''
+    Represents a white/black list
+    '''
+    __tablename__ = 'colorlist'
+
+    ACTION_WHITELIST = 0
+    ACTION_BLACKLIST = 1
+    KEY_IP = 0
+    KEY_TLF = 1
 
     id = db.Column(db.Integer, db.Sequence('user_id_seq'), primary_key=True)
 
-    created = db.Column(db.DateTime())
+    # white, black
+    action = db.Column(db.Integer, index=True)
 
-    modified = db.Column(db.DateTime())
+    # ip, tlf
+    key = db.Column(db.Integer, index=True)
 
-    ip = db.Column(db.String(20))
+    value = db.Column(db.String(45), index=True)
 
-    dest = db.Column(db.String(16))
+    created = db.Column(db.DateTime, default=datetime.utcnow)
 
-    msg = db.Column(db.String(160))
-
-    status = db.Column(db.Integer, index=True)
-
-    sms_status = db.Column(db.String(20))
-
-    sms_response = db.Column(db.String(400))
+    modified = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __repr__(self):
+        return '<ColorList %r>' % self.id
+
+
+class Message(db.Model):
+    '''
+    Represents message list
+    '''
+    __tablename__ = 'message'
+
+    id = db.Column(db.Integer, db.Sequence('message_id_seq'), primary_key=True)
+
+    created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    modified = db.Column(db.DateTime, default=datetime.utcnow)
+
+    tlf = db.Column(db.String(20), index=True)
+
+    content = db.Column(db.String(160))
+
+    token = db.Column(db.String(40))
+
+    authenticated = db.Column(db.Boolean, default=False)
+
+    lang_code = db.Column(db.String(6))
+
+    # queued, sent
+    status = db.Column(db.String(10), index=True)
+
+    sms_status = db.Column(db.String(20), default="")
+
+    sms_response = db.Column(db.String(400), default="")
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __repr__(self):

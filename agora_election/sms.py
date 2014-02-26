@@ -51,9 +51,18 @@ class SMSProvider(object):
         provider = app_flask.config.get('SMS_PROVIDER', '')
         if provider == "altiria":
             return AltiriaSMSProvider()
+        if provider == "console":
+            return ConsoleSMSProvider()
         else:
             raise Exception("invalid SMS_PROVIDER='%s' in app config" % provider)
 
+
+class ConsoleSMSProvider(SMSProvider):
+    provider_name = "console"
+
+    def send_sms(self, receiver, content):
+        logging.info("sending message '%(msg)s' to '%(dest)s'" % dict(
+            msg=content, dest=receiver))
 
 class AltiriaSMSProvider(SMSProvider):
     '''
