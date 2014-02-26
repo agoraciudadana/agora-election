@@ -192,7 +192,7 @@ def check_tlf_total_max(ip_addr, data, total_max):
 
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
-                Message.authenticated = False,
+                Message.authenticated == False,
                 Message.status == Message.STATUS_SENT).count()
     if item >= total_max:
         logging.warn("check_tlf_total_max: blacklisting")
@@ -217,7 +217,7 @@ def check_tlf_day_max(ip_addr, data, day_max):
 
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
-                Message.authenticated = False,
+                Message.authenticated == False,
                 Message.status == Message.STATUS_SENT,
                 Message.modified >= (datetime.utcnow() - timedelta(days=1))
                 ).count()
@@ -234,7 +234,7 @@ def check_tlf_hour_max(ip_addr, data, hour_max):
 
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
-                Message.authenticated = False,
+                Message.authenticated == False,
                 Message.status == Message.STATUS_SENT,
                 Message.modified >= (datetime.utcnow() - timedelta(hours=1))
                 ).count()
@@ -252,7 +252,7 @@ def check_tlf_expire_max(ip_addr, data):
     secs = current_app.config.get('SMS_EXPIRE_SECS', 120)
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
-                Message.authenticated = False,
+                Message.authenticated == False,
                 Message.status == Message.STATUS_SENT,
                 Message.modified >= (datetime.utcnow() - timedelta(seconds=secs))
                 ).first()
@@ -269,7 +269,7 @@ def check_ip_total_max(ip_addr, data, total_max):
 
     item = db.session.query(Message)\
         .filter(Message.ip == ip_addr,
-                Message.authenticated = False,
+                Message.authenticated == False,
                 Message.status == Message.STATUS_SENT).count()
     if item >= total_max:
         logging.warn("check_ip_total_max: blacklisting")
@@ -320,7 +320,7 @@ def check_registration_pipeline(ip_addr, data):
     * an instance of flask.Response, in which case we assume it's an error we
       have to show.
     '''
-    pipeline = current_app.config.get('CHECKS_PIPELINE', [])
+    pipeline = current_app.config.get('SMS_CHECKS_PIPELINE', [])
 
     for checker_path, kwargs in pipeline:
         # get access to the function

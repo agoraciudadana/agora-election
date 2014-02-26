@@ -17,26 +17,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import random
-import string
-import re
-import logging
-from datetime import datetime
 
 from flask import Blueprint, request, make_response
 from flask import current_app
 
 from checks import *
 from app import db
+from crypto import constant_time_compare, salted_hmac, get_random_string
 
 api = Blueprint('api', __name__)
 
 def token_generator():
     '''
-    Generate an user token string. 8 alfanumeric characters.
+    Generate an user token string. 8 alfanumeric characters. We do not allow
+    confusing characters: 0,O,I,1
     '''
-    return ''.join(random.choice(string.ascii_uppercase + string.digits)
-                   for x in range(8))
+    return get_random_string(8, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
 
 @api.route('/register/', methods=['POST'])
 def post_register():
@@ -46,7 +42,7 @@ def post_register():
     sms code to the tlf nº of the user.
 
     Example request:
-    POST /register
+    POST /api/v1/register/
     {
         "first_name": "Fulanito",
         "last_name": "de tal",
@@ -108,6 +104,7 @@ def post_register():
 
     # create voter and send sms
     voter = Voter(
+        election_id=curr_eid,
         ip=request.remote_addr,
         first_name=data["first_name"],
         last_name=data["last_name"],
@@ -131,3 +128,110 @@ def post_register():
 
 
     return make_response("", 200)
+
+def set_serializable():
+    # if using postgres, then we check concurrency
+    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
+        import psycopg2
+        conn = db.session.bind.engine.connect().connection.connection
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
+
+def unset_serializable():
+    # if using postgres, then we check concurrency
+    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
+        import psycopg2
+        conn = db.session.bind.engine.connect().connection.connection
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED)
+
+@api.route('/sms_auth/', methods=['POST'])
+def post_sms_auth():
+    '''
+    Receives an sms authentication.
+
+    Example request:
+    POST /api/v1/sms_auth/
+    {
+        "tlf": "+34666666666",
+        "token": "AA4TL219",
+    }
+
+    Successful response:
+    {
+        "message": "<auth_date_timestamp>#<voter_id>",
+        "sha1_hmac": "<sha1 hash>",
+    }
+    '''
+    from tasks import send_sms
+    from models import Voter, Message
+
+    # first of all, parse input data
+    data = request.get_json(force=True, silent=True)
+    if data is None:
+        return error("invalid json", error_codename="not_json")
+
+    # initial input checking
+    input_checks = (
+        ['tlf', lambda x: str_constraint(
+            x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
+        ['token', lambda x: str_constraint(x, rx_pattern="[0-9A-Z]{8}")],
+    )
+    check_status = constraints_checker(input_checks, data)
+    if  check_status is not True:
+        return check_status
+
+    # check that voter has not voted
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    set_serializable()
+    voters = db.session.query(Voter)\
+        .filter(Voter.election_id == curr_eid,
+                Voter.tlf == data["tlf"],
+                Voter.status == Voter.STATUS_SENT,
+                Voter.is_active == True)
+    if voters.count() == 0:
+        unset_serializable()
+        return error("Voter has not any sms", error_codename="sms_notsent")
+    voter = voters.first()
+
+    # check token has not too many guesses or has expired
+    expire_time = current_app.config.get('SMS_TOKEN_EXPIRE_SECS', 60*10)
+    expire_dt = datetime.utcnow() - timedelta(seconds=expire_time)
+
+    if voter.token_guesses >= current_app.config.get("MAX_TOKEN_GUESSES", 5) or\
+            voter.message.created <= expire_dt:
+        return error("Voter provided invalid token, please try a new one",
+                     error_codename="need_new_token")
+
+    # check token
+    if not constant_time_compare(data["token"], voter.message.token):
+        voter.token_guesses += 1
+        voter.modified = datetime.utcnow()
+        db.session.add(voter)
+        db.session.commit()
+        unset_serializable()
+        return error("Voter provided invalid token", error_codename="invalid_token")
+
+    voter.status = Voter.STATUS_AUTHENTICATED
+    voter.modified = datetime.utcnow()
+    db.session.add(voter)
+
+    # invalidate other voters with same tlf
+    for v in voters[1:]:
+        v.is_active = False
+        db.session.add(v)
+    db.session.commit()
+    # okey now we have finished the critical serialized path, we can breath now
+    unset_serializable()
+
+    message = "%d#%d" % (
+        int(datetime.utcnow().timestamp()),
+        voter.id
+    )
+    key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
+
+    ret_data = dict(
+        message=message,
+        sha1_hmac=salted_hmac(key, message, "").hexdigest()
+    )
+    return make_response(json.dumps(ret_data), 200)

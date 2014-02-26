@@ -81,6 +81,11 @@ def main():
                         help="key==value(s) filters for queries")
     pargs = parser.parse_args()
 
+    if "postgres" not in app_flask.config.get("SQLALCHEMY_DATABASE_URI", ""):
+        logging.warn("Warning: you need to use postgresql to guarantee that "
+                     "the correct isolation level is setup so that each "
+                     "voter can vote only once when there's a race-conditions")
+
     if pargs.createdb:
         logging.info("creating the database: %s" % app_flask.config.get(
             'SQLALCHEMY_DATABASE_URI', ''))
@@ -186,7 +191,7 @@ def main():
             items = db.session.query(Voter)
 
         table = PrettyTable(['id', 'modified', 'tlf', 'is_active',
-                             'token_guesses', 'message_id', 'status'])
+                             'token_guesses', 'message_id', 'status', 'election_id'])
 
         def str_status(i):
             if i.status == Voter.STATUS_CREATED:
@@ -202,7 +207,8 @@ def main():
         print("%d rows:" % items.count())
         for i in items:
             table.add_row([i.id, i.modified, i.tlf, i.is_active,
-                           i.token_guesses, i.message_id, str_status(i)])
+                           i.token_guesses, i.message_id, str_status(i),
+                           i.election_id])
         print(table)
         return
 

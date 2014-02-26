@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 from datetime import datetime
 from flask.ext.babel import gettext, ngettext
 
@@ -38,6 +39,12 @@ def send_sms(msg_id):
     if msg.status != Message.STATUS_QUEUED:
         raise Exception("Message msg id = %d is not in "
             "queued status (0), but '%d'" % (msg_id, msg.status))
+
+    voter = msg.voters.first()
+    if not voter.is_active:
+        logging.warn("not sending msg with id = %d because voter is not "
+                     "active anymore" % msg_id)
+        return
 
     # forge the message using the token
     server_name = app_flask.config.get("SERVER_NAME", "")
