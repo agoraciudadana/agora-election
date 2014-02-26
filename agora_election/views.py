@@ -56,7 +56,7 @@ def post_register():
         "receive_updates": true
     }
 
-    Successfull response is empty
+    Successful response is empty
     '''
     from tasks import send_sms
     from models import Voter, Message

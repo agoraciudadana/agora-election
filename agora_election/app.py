@@ -36,7 +36,7 @@ app = Celery("app")
 
 from tasks import *
 from views import api
-from models import ColorList, Message, Voter
+from models import *
 app_flask.register_blueprint(api, url_prefix='/api/v1')
 
 def config():
@@ -48,7 +48,8 @@ def config():
     if settings_file is not None:
         if not os.path.isabs(settings_file):
             os.environ['AGORA_ELECTION_SETTINGS'] = os.path.abspath(settings_file)
-        logging.debug("AGORA_ELECTION_SETTINGS = %s" % os.environ['AGORA_ELECTION_SETTINGS'])
+        logging.debug("AGORA_ELECTION_SETTINGS "
+                      "= %s" % os.environ['AGORA_ELECTION_SETTINGS'])
         app_flask.config.from_envvar('AGORA_ELECTION_SETTINGS', silent=False)
 
 def main():
@@ -65,19 +66,32 @@ def main():
                         action="store_true")
     parser.add_argument("-m", "--message", help="message to be sent")
     parser.add_argument("-i", "--ip", help="ip address")
-    parser.add_argument("-l", "--list-show", help="show list", action="store_true")
-    parser.add_argument("-r", "--remove", help="remove item from black or white list", action="store_true")
+    parser.add_argument("-ls", "--list-show",
+                        help="show black/white list", action="store_true")
+    parser.add_argument("-lv", "--list-voters",
+                        help="list voters", action="store_true")
+    parser.add_argument("-lm", "--list-messages",
+                        help="list messages", action="store_true")
+    parser.add_argument("-r", "--remove",
+                        help="remove item from black or white list",
+                        action="store_true")
     parser.add_argument("-t", "--tlf", help="telephone number")
+    parser.add_argument("-f", "--filters", nargs='+', default=[],
+                        help="key==value(s) filters for queries")
     pargs = parser.parse_args()
 
     if pargs.createdb:
-        logging.info("creating the database: %s" % app_flask.config.get('SQLALCHEMY_DATABASE_URI', ''))
+        logging.info("creating the database: %s" % app_flask.config.get(
+            'SQLALCHEMY_DATABASE_URI', ''))
         db.create_all()
         return
     elif pargs.console:
         import ipdb; ipdb.set_trace()
         return
     elif pargs.send:
+        if not pargs.tlf or not pargs.message:
+            logging.error("You need to provide --tlf and --message!")
+            exit(1)
         if pargs.tlf.startswith("+34"):
             tlf = pargs.tlf
         else:
@@ -99,6 +113,8 @@ def main():
         return
     elif pargs.list_show:
         key = None
+        action = None
+        value = None
         if pargs.ip:
             key = ColorList.KEY_IP
             value = pargs.ip
@@ -114,10 +130,10 @@ def main():
 
         if action is None and key is None:
             items = db.session.query(ColorList)
-        if action is None:
+        elif key is not None:
             items  = db.session.query(ColorList)\
                 .filter(ColorList.key == key, ColorList.value == value)
-        elif key is None:
+        elif action is not None:
             items = db.session.query(ColorList)\
                 .filter(ColorList.action == action)
         else:
@@ -125,6 +141,14 @@ def main():
                 .filter(ColorList.key == key,
                         ColorList.action == action,
                         ColorList.value == value)
+
+        filters=[]
+        for filter in args.filters:
+            key, value = filter.split("==")
+            filters.append(getattr(ColorList, key).__eq__(value))
+
+        if filters:
+            items = items.filter(*filters)
 
         def str_action(task):
             if task.action == ColorList.ACTION_WHITELIST:
@@ -147,14 +171,86 @@ def main():
         print(table)
         return
 
-    elif pargs.whitelist or pargs.blacklist:
-        action = ColorList.ACTION_WHITELIST if pargs.whitelist else ColorList.ACTION_BLACKLIST
+    elif pargs.list_voters:
+        filters=[]
+        for filter in pargs.filters:
+            key, value = filter.split("==")
+            filters.append(getattr(Voter, key).__eq__(value))
+
+        if filters:
+            items = db.session.query(Voter).filter(*filters)
+        else:
+            items = db.session.query(Voter)
+
+        table = PrettyTable(['id', 'modified', 'tlf', 'is_active',
+                             'token_guesses', 'message_id', 'status'])
+
+        print("%d rows:" % items.count())
+        for i in items:
+            table.add_row([i.id, i.modified, i.tlf, i.is_active,
+                           i.token_guesses, i.message_id, i.status])
+        print(table)
+        return
+
+    elif pargs.list_messages:
+        filters=[]
+        for filter in pargs.filters:
+            key, value = filter.split("==")
+            filters.append(getattr(Message, key).__eq__(value))
+
+        if filters:
+            items = db.session.query(Message).filter(*filters)
+        else:
+            items = db.session.query(Message)
+
+        table = PrettyTable(['id', 'modified', 'tlf', 'token',
+                             'status', 'sms_status'])
+
+        print("%d rows:" % items.count())
+        for i in items:
+            table.add_row([i.id, i.modified, i.tlf, i.token, i.status,
+                           i.sms_status])
+        print(table)
+        return
+
+    elif pargs.remove:
+        if not pargs.whitelist and not pargs.blacklist:
+            logging.error("You need to provide --blacklist or --whitelist!")
+            exit(1)
+        if not pargs.ip and not pargs.tlf:
+            logging.error("You need to provide --ip or --tlf!")
+            exit(1)
+        key = value = None
+        action = ColorList.ACTION_WHITELIST if pargs.whitelist else\
+                 ColorList.ACTION_BLACKLIST
         if pargs.ip:
             key = ColorList.KEY_IP
             value = pargs.ip
-        else:
+        elif pargs.tlf:
             key = ColorList.KEY_TLF
             value = pargs.tlf
+        items = db.session.query(ColorList)\
+            .filter(
+                    ColorList.key == key,
+                    ColorList.action == action,
+                    ColorList.value == value)
+        for item in items:
+            db.session.delete(item)
+        db.session.commit()
+        return
+
+    elif pargs.whitelist or pargs.blacklist:
+        action = ColorList.ACTION_WHITELIST if pargs.whitelist else\
+                 ColorList.ACTION_BLACKLIST
+        if pargs.ip:
+            key = ColorList.KEY_IP
+            value = pargs.ip
+        elif pargs.tlf:
+            key = ColorList.KEY_TLF
+            value = pargs.tlf
+        else:
+            logging.error("You need to provide --tlf or --ip!")
+            exit(1)
 
         item = db.session.query(ColorList)\
             .filter(ColorList.key == key,
@@ -169,7 +265,8 @@ def main():
         db.session.commit()
         return
 
-    logging.info("using provider = %s" % app_flask.config.get('SMS_PROVIDER', None))
+    logging.info("using provider = %s" % app_flask.config.get(
+        'SMS_PROVIDER', None))
     port = app_flask.config.get('SERVER_PORT', None)
     app_flask.run(threaded=True, use_reloader=False, port=port)
 
