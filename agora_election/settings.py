@@ -20,11 +20,11 @@ CHECKS_PIPELINE = (
     ("checks.check_tlf_whitelisted", None),
     ("checks.check_ip_whitelisted", None),
     ("checks.check_blacklisted", None),
+    ("checks.check_ip_total_max", dict(total_max=8)),
     ("checks.check_tlf_total_max", dict(total_max=7)),
     ("checks.check_tlf_day_max", dict(day_max=5)),
     ("checks.check_tlf_hour_max", dict(hour_max=3)),
-    #("checks.check_tlf_expire_max", None),
-    ("checks.check_ip_total_max", dict(total_max=8)),
+    ("checks.check_tlf_expire_max", None),
 )
 
 # change for each election

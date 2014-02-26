@@ -109,7 +109,7 @@ def check_has_not_voted(ip_addr, data):
     voter = db.session.query(Voter)\
         .filter(Voter.election_id == curr_eid,
                 Voter.tlf == data["tlf"],
-                Voter.status == 'voted',
+                Voter.status == Voter.STATUS_VOTED,
                 Voter.is_active == True).first()
     if voter is not None:
         return error("Voter already voted", field="tlf",
@@ -142,17 +142,14 @@ def check_ip_whitelisted(ip_addr, data):
     from app import db
     from models import ColorList
 
-    item = db.session.query(ColorList)\
+    items = db.session.query(ColorList)\
         .filter(ColorList.key == ColorList.KEY_IP,
-                ColorList.value == ip_addr).first()
-    if item is not None:
+                ColorList.value == ip_addr)
+
+    for item in items:
         if item.action == ColorList.ACTION_WHITELIST:
-            data["ip_whitelisted"] = True
-            data["ip_blacklisted"] = False
-        else:
-            data["ip_blacklisted"] = True
-    else:
-        data["ip_blacklisted"] = False
+            return RET_PIPE_SUCCESS
+
     return RET_PIPE_CONTINUE
 
 def check_blacklisted(ip_addr, data):
@@ -186,21 +183,6 @@ def check_blacklisted(ip_addr, data):
 
     return RET_PIPE_CONTINUE
 
-def check_ip_blacklisted(ip_addr, data):
-    '''
-    If ip is whitelisted, then do not blacklist by ip in the following checkers
-    '''
-    from app import db
-    from models import ColorList
-
-    item = db.session.query(ColorList)\
-        .filter(ColorList.key == ColorList.KEY_IP,
-                ColorList.action == ColorList.ACTION_WHITELIST,
-                ColorList.value == ip_addr).first()
-    if item is not None:
-        data["ip_whitelisted"] = True
-    return RET_PIPE_CONTINUE
-
 def check_tlf_total_max(ip_addr, data, total_max):
     '''
     if tlf has been sent >= MAX_SMS_LIMIT failed-sms in total->blacklist, error
@@ -210,8 +192,10 @@ def check_tlf_total_max(ip_addr, data, total_max):
 
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
+                Message.authenticated = False,
                 Message.status == Message.STATUS_SENT).count()
     if item >= total_max:
+        logging.warn("check_tlf_total_max: blacklisting")
         cl = ColorList(action=ColorList.ACTION_BLACKLIST,
                        key=ColorList.KEY_TLF,
                        value = data["tlf"])
@@ -233,6 +217,7 @@ def check_tlf_day_max(ip_addr, data, day_max):
 
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
+                Message.authenticated = False,
                 Message.status == Message.STATUS_SENT,
                 Message.modified >= (datetime.utcnow() - timedelta(days=1))
                 ).count()
@@ -249,6 +234,7 @@ def check_tlf_hour_max(ip_addr, data, hour_max):
 
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
+                Message.authenticated = False,
                 Message.status == Message.STATUS_SENT,
                 Message.modified >= (datetime.utcnow() - timedelta(hours=1))
                 ).count()
@@ -266,6 +252,7 @@ def check_tlf_expire_max(ip_addr, data):
     secs = current_app.config.get('SMS_EXPIRE_SECS', 120)
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
+                Message.authenticated = False,
                 Message.status == Message.STATUS_SENT,
                 Message.modified >= (datetime.utcnow() - timedelta(seconds=secs))
                 ).first()
@@ -282,13 +269,14 @@ def check_ip_total_max(ip_addr, data, total_max):
 
     item = db.session.query(Message)\
         .filter(Message.ip == ip_addr,
+                Message.authenticated = False,
                 Message.status == Message.STATUS_SENT).count()
     if item >= total_max:
-        cl2 = ColorList(action=ColorList.ACTION_BLACKLIST,
+        logging.warn("check_ip_total_max: blacklisting")
+        cl = ColorList(action=ColorList.ACTION_BLACKLIST,
                        key=ColorList.KEY_IP,
                        value = ip_addr)
         db.session.add(cl)
-        db.session.add(cl2)
         db.session.commit()
         return error("Blacklisted", error_codename="blacklisted")
     return RET_PIPE_CONTINUE

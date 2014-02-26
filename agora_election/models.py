@@ -115,6 +115,7 @@ class Message(db.Model):
 
     STATUS_QUEUED = 0
     STATUS_SENT = 1
+    STATUS_IGNORE =  2
 
     id = db.Column(db.Integer, db.Sequence('message_id_seq'), primary_key=True)
 

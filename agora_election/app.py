@@ -26,6 +26,7 @@ from celery import Celery
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from flask.ext.babel import Babel
 
 # bootstrap our app
@@ -221,15 +222,17 @@ def main():
                 ret = "queued"
             elif i.status == Message.STATUS_SENT:
                 ret = "sent"
+            elif i.status == Message.STATUS_IGNORE:
+                ret = "ignore"
             return "%s,%d" % (ret, i.status)
 
         table = PrettyTable(['id', 'modified', 'tlf', 'token',
-                             'status', 'sms_status'])
+                             'status', 'ip'])
 
         print("%d rows:" % items.count())
         for i in items:
             table.add_row([i.id, i.modified, i.tlf, i.token, str_status(i),
-                           i.sms_status])
+                           i.ip])
         print(table)
         return
 
@@ -256,6 +259,18 @@ def main():
                     ColorList.value == value)
         for item in items:
             db.session.delete(item)
+
+        # when removing a blacklist, reset counters:
+        if pargs.blacklist:
+            if pargs.ip:
+                clause = getattr(Message, "ip").__eq__(pargs.ip)
+            else:
+                clause = getattr(Message, "tlf").__eq__(pargs.tlf)
+            items = db.session.query(Message).filter(clause)
+            for item in items:
+                item.status = Message.STATUS_IGNORE
+                db.session.add(item)
+            db.session.commit()
         db.session.commit()
         return
 
