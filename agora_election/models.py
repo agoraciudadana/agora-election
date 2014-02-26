@@ -25,6 +25,11 @@ class Voter(db.Model):
     '''
     __tablename__ = 'voter'
 
+    STATUS_CREATED = 0
+    STATUS_SENT = 1
+    STATUS_AUTHENTICATED = 2
+    STATUS_VOTED = 3
+
     id = db.Column(db.Integer, db.Sequence('voter_id_seq'), primary_key=True)
 
     election_id = db.Column(db.Integer, index=True)
@@ -58,8 +63,8 @@ class Voter(db.Model):
 
     is_active = db.Column(db.Boolean)
 
-    # created|sms-sent|authenticated|voting|voted
-    status = db.Column(db.String(16), index=True)
+    # created|sms-sent|authenticated|voted
+    status = db.Column(db.Integer, index=True)
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -108,6 +113,9 @@ class Message(db.Model):
     '''
     __tablename__ = 'message'
 
+    STATUS_QUEUED = 0
+    STATUS_SENT = 1
+
     id = db.Column(db.Integer, db.Sequence('message_id_seq'), primary_key=True)
 
     created = db.Column(db.DateTime, default=datetime.utcnow)
@@ -115,6 +123,8 @@ class Message(db.Model):
     modified = db.Column(db.DateTime, default=datetime.utcnow)
 
     tlf = db.Column(db.String(20), index=True)
+
+    ip = db.Column(db.String(45), index=True)
 
     content = db.Column(db.String(160))
 
@@ -125,7 +135,7 @@ class Message(db.Model):
     lang_code = db.Column(db.String(6))
 
     # queued, sent
-    status = db.Column(db.String(10), index=True)
+    status = db.Column(db.Integer, index=True)
 
     sms_status = db.Column(db.String(20), default="")
 

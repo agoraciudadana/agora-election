@@ -28,29 +28,29 @@ def send_sms(msg_id):
     Sends an sms with a given content to the receiver
     '''
     from app import db
-    from models import Message
+    from models import Message, Voter
 
     # get the msg
     msg = db.session.query(Message)\
         .filter(Message.id == msg_id).first()
     if msg is None:
         raise Exception("Message with id = %d not found" % msg_id)
-    if msg.status != "queued":
+    if msg.status != Message.STATUS_QUEUED:
         raise Exception("Message msg id = %d is not in "
-            "queued status, but '%s'" % (msg_id, msg.status))
+            "queued status (0), but '%d'" % (msg_id, msg.status))
 
     # forge the message using the token
     server_name = app_flask.config.get("SERVER_NAME", "")
     content = gettext(
-        "%(server_name)s - your token is: '%(token)s",
+        app_flask.config.get("SMS_MESSAGE", ""),
         token=msg.token, server_name=server_name)
 
     # update status
-    msg.status = "sent"
+    msg.status = Message.STATUS_SENT
     msg.content = content
     msg.modified = datetime.utcnow()
     voter = msg.voters.first()
-    voter.status = "sms-sent"
+    voter.status = Voter.STATUS_SENT
     voter.modified = datetime.utcnow()
     db.session.add(msg)
     db.session.add(voter)

@@ -20,17 +20,26 @@ CHECKS_PIPELINE = (
     ("checks.check_tlf_whitelisted", None),
     ("checks.check_ip_whitelisted", None),
     ("checks.check_blacklisted", None),
+    ("checks.check_tlf_total_max", dict(total_max=7)),
+    ("checks.check_tlf_day_max", dict(day_max=5)),
+    ("checks.check_tlf_hour_max", dict(hour_max=3)),
+    #("checks.check_tlf_expire_max", None),
+    ("checks.check_ip_total_max", dict(total_max=8)),
 )
 
 # change for each election
 CURRENT_ELECTION_ID = 0
 
 # timeframe within the SMS message should either be sent or we should give up
-# sending a specific SMS
+# sending a specific SMS. it's also used so that an user have to wait
+# SMS_EXPIRE_SECS to send the next sms message
 SMS_EXPIRE_SECS = 120
 
 # delay tasks if needed. sqlite needs it
 TASKS_DELAY = 1
+
+# format the sms message
+SMS_MESSAGE = "%(server_name)s: your token is: %(token)s"
 
 ########### flask
 

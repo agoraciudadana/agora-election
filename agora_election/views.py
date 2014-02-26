@@ -100,13 +100,15 @@ def post_register():
     token = token_generator()
     msg = Message(
         tlf=data["tlf"],
+        ip=request.remote_addr,
         lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
         token=token,
-        status="queued",
+        status=Message.STATUS_QUEUED,
     )
 
     # create voter and send sms
     voter = Voter(
+        ip=request.remote_addr,
         first_name=data["first_name"],
         last_name=data["last_name"],
         email=data["first_name"],
@@ -114,7 +116,7 @@ def post_register():
         age=data["age"],
         receive_mail_updates=data["receive_updates"],
         lang_code=msg.lang_code,
-        status="created",
+        status=Voter.STATUS_CREATED,
         message=msg,
         is_active=True,
     )

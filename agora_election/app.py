@@ -66,7 +66,7 @@ def main():
                         action="store_true")
     parser.add_argument("-m", "--message", help="message to be sent")
     parser.add_argument("-i", "--ip", help="ip address")
-    parser.add_argument("-ls", "--list-show",
+    parser.add_argument("-lc", "--list-colors",
                         help="show black/white list", action="store_true")
     parser.add_argument("-lv", "--list-voters",
                         help="list voters", action="store_true")
@@ -111,7 +111,7 @@ def main():
         send_sms.apply_async(kwargs=dict(msg_id=msg.id),
             expires=app_flask.config.get('SMS_EXPIRE_SECS', 120))
         return
-    elif pargs.list_show:
+    elif pargs.list_colors:
         key = None
         action = None
         value = None
@@ -143,7 +143,7 @@ def main():
                         ColorList.value == value)
 
         filters=[]
-        for filter in args.filters:
+        for filter in pargs.filters:
             key, value = filter.split("==")
             filters.append(getattr(ColorList, key).__eq__(value))
 
@@ -152,15 +152,17 @@ def main():
 
         def str_action(task):
             if task.action == ColorList.ACTION_WHITELIST:
-                return "whitelist"
+                ret = "whitelist"
             elif task.action == ColorList.ACTION_BLACKLIST:
-                return "blacklist"
+                ret = "blacklist"
+            return "%s,%d" % (ret, task.action)
 
         def str_key(task):
             if task.key == ColorList.KEY_IP:
-                return "ip"
+                ret = "ip"
             elif task.key == ColorList.KEY_TLF:
-                return "tlf"
+                ret = "tlf"
+            return "%s,%d" % (ret, task.key)
 
         table = PrettyTable(['id', 'action', 'key', 'value', 'created'])
 
@@ -185,10 +187,21 @@ def main():
         table = PrettyTable(['id', 'modified', 'tlf', 'is_active',
                              'token_guesses', 'message_id', 'status'])
 
+        def str_status(i):
+            if i.status == Voter.STATUS_CREATED:
+                ret = "created"
+            elif i.status == Voter.STATUS_SENT:
+                ret = "sent"
+            if i.status == Voter.STATUS_AUTHENTICATED:
+                ret = "authenticated"
+            if i.status == Voter.STATUS_VOTED:
+                ret = "voted"
+            return "%s,%d" % (ret, i.status)
+
         print("%d rows:" % items.count())
         for i in items:
             table.add_row([i.id, i.modified, i.tlf, i.is_active,
-                           i.token_guesses, i.message_id, i.status])
+                           i.token_guesses, i.message_id, str_status(i)])
         print(table)
         return
 
@@ -203,12 +216,19 @@ def main():
         else:
             items = db.session.query(Message)
 
+        def str_status(i):
+            if i.status == Message.STATUS_QUEUED:
+                ret = "queued"
+            elif i.status == Message.STATUS_SENT:
+                ret = "sent"
+            return "%s,%d" % (ret, i.status)
+
         table = PrettyTable(['id', 'modified', 'tlf', 'token',
                              'status', 'sms_status'])
 
         print("%d rows:" % items.count())
         for i in items:
-            table.add_row([i.id, i.modified, i.tlf, i.token, i.status,
+            table.add_row([i.id, i.modified, i.tlf, i.token, str_status(i),
                            i.sms_status])
         print(table)
         return

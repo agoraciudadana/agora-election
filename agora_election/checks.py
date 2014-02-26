@@ -19,7 +19,7 @@
 import json
 import re
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, request, make_response
 from flask import current_app
@@ -201,6 +201,98 @@ def check_ip_blacklisted(ip_addr, data):
         data["ip_whitelisted"] = True
     return RET_PIPE_CONTINUE
 
+def check_tlf_total_max(ip_addr, data, total_max):
+    '''
+    if tlf has been sent >= MAX_SMS_LIMIT failed-sms in total->blacklist, error
+    '''
+    from app import db
+    from models import ColorList, Message
+
+    item = db.session.query(Message)\
+        .filter(Message.tlf == data["tlf"],
+                Message.status == Message.STATUS_SENT).count()
+    if item >= total_max:
+        cl = ColorList(action=ColorList.ACTION_BLACKLIST,
+                       key=ColorList.KEY_TLF,
+                       value = data["tlf"])
+        cl2 = ColorList(action=ColorList.ACTION_BLACKLIST,
+                       key=ColorList.KEY_IP,
+                       value = ip_addr)
+        db.session.add(cl)
+        db.session.add(cl2)
+        db.session.commit()
+        return error("Blacklisted", error_codename="blacklisted")
+    return RET_PIPE_CONTINUE
+
+def check_tlf_day_max(ip_addr, data, day_max):
+    '''
+    if tlf has been sent >= MAX_DAY_SMS_LIMIT failed-sms last day-> error
+    '''
+    from app import db
+    from models import Message
+
+    item = db.session.query(Message)\
+        .filter(Message.tlf == data["tlf"],
+                Message.status == Message.STATUS_SENT,
+                Message.modified >= (datetime.utcnow() - timedelta(days=1))
+                ).count()
+    if item >= day_max:
+        return error("Too many messages sent in a day", error_codename="wait_day")
+    return RET_PIPE_CONTINUE
+
+def check_tlf_hour_max(ip_addr, data, hour_max):
+    '''
+    if tlf has been sent >= MAX_SMS_LIMIT failed-sms last hour-> error
+    '''
+    from app import db
+    from models import Message
+
+    item = db.session.query(Message)\
+        .filter(Message.tlf == data["tlf"],
+                Message.status == Message.STATUS_SENT,
+                Message.modified >= (datetime.utcnow() - timedelta(hours=1))
+                ).count()
+    if item >= hour_max:
+        return error("Too many messages sent in an hour", error_codename="wait_hour")
+    return RET_PIPE_CONTINUE
+
+def check_tlf_expire_max(ip_addr, data):
+    '''
+    if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
+    '''
+    from app import db
+    from models import Message
+
+    secs = current_app.config.get('SMS_EXPIRE_SECS', 120)
+    item = db.session.query(Message)\
+        .filter(Message.tlf == data["tlf"],
+                Message.status == Message.STATUS_SENT,
+                Message.modified >= (datetime.utcnow() - timedelta(seconds=secs))
+                ).first()
+    if item is not None:
+        return error("Please wait until your sms arrives", error_codename="wait_expire")
+    return RET_PIPE_CONTINUE
+
+def check_ip_total_max(ip_addr, data, total_max):
+    '''
+    if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
+    '''
+    from app import db
+    from models import ColorList, Message
+
+    item = db.session.query(Message)\
+        .filter(Message.ip == ip_addr,
+                Message.status == Message.STATUS_SENT).count()
+    if item >= total_max:
+        cl2 = ColorList(action=ColorList.ACTION_BLACKLIST,
+                       key=ColorList.KEY_IP,
+                       value = ip_addr)
+        db.session.add(cl)
+        db.session.add(cl2)
+        db.session.commit()
+        return error("Blacklisted", error_codename="blacklisted")
+    return RET_PIPE_CONTINUE
+
 def check_registration_pipeline(ip_addr, data):
     '''
     Does a deeper check on the input data when creating an election. These are
@@ -211,11 +303,12 @@ def check_registration_pipeline(ip_addr, data):
        checkers
     4. tlf, ip should not be blacklisted
 
-    TODO:
-    5. if tlf has been sent >=7 failed-sms in total, error, blacklist
-    6. if tlf has been sent more than >=3 failed-sms last hour, error, wait
-    7. if tlf has been sent 1 failed-sms last 3 minutes, error, wait
-    8  if ip has been sent >= 7 failed-sms last day, error, blacklist
+    5. if tlf has been sent >=8 failed-sms in total, error, blacklist
+    6  if ip has been sent >= 7 failed-sms last day, error, wait
+    7. if tlf has been sent >=3 failed-sms last hour, error, wait
+    8. if tlf has been sent an failed-sms last 2 minutes, error, wait
+
+    9. if ip has been sent >=8 failed-sms in total, error, blacklist
     9. success!
 
     This uses the config parameter CHECKS_PIPELINE, that must be a list of
@@ -249,7 +342,7 @@ def check_registration_pipeline(ip_addr, data):
             [func_name], 0)
         fargs = dict(ip_addr=ip_addr, data=data)
         if kwargs is not None:
-            fargs.update(fargs)
+            fargs.update(kwargs)
         ret = getattr(module, func_name)(**fargs)
         if ret == RET_PIPE_CONTINUE:
             continue
