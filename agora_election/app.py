@@ -36,9 +36,8 @@ db = SQLAlchemy(app_flask)
 app = Celery("app")
 
 from tasks import *
-from views import api
 from models import *
-app_flask.register_blueprint(api, url_prefix='/api/v1')
+from views import api, index
 
 def config():
     logging.basicConfig(level=logging.DEBUG)
@@ -306,10 +305,13 @@ def main():
         db.session.commit()
         return
 
+    app_flask.register_blueprint(api, url_prefix='/api/v1')
+    app_flask.register_blueprint(index, url_prefix='/')
+
     logging.info("using provider = %s" % app_flask.config.get(
         'SMS_PROVIDER', None))
     port = app_flask.config.get('SERVER_PORT', None)
-    app_flask.run(threaded=True, use_reloader=False, port=port)
+    app_flask.run(threaded=True, use_reloader=False, port=port, host="0.0.0.0")
 
 # needs to be called in celery too
 config()

@@ -18,7 +18,7 @@
 
 import json
 
-from flask import Blueprint, request, make_response
+from flask import Blueprint, request, make_response, render_template, url_for
 from flask import current_app
 
 from checks import *
@@ -26,6 +26,7 @@ from app import db
 from crypto import constant_time_compare, salted_hmac, get_random_string
 
 api = Blueprint('api', __name__)
+index = Blueprint('index', __name__)
 
 def token_generator():
     '''
@@ -235,3 +236,7 @@ def post_sms_auth():
         sha1_hmac=salted_hmac(key, message, "").hexdigest()
     )
     return make_response(json.dumps(ret_data), 200)
+
+@index.route('/', methods=['GET'])
+def get_index():
+    return current_app.send_static_file("index.html")
