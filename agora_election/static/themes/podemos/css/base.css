@@ -1,0 +1,298 @@
+html {
+    background-color: #F6FCF2;
+    color: rgb(39, 53, 53);
+    font: 1.2rem/20px 'Merriweather',Georgia,'Times New Roman',Times,serif;
+    margin: 0px;
+    padding: 0px;
+    border: 0px none;
+    vertical-align: baseline;
+}
+
+body {
+    background-color: #F6FCF2;
+}
+
+body > .container {
+    padding: 0;
+}
+
+.cf:after {
+    clear: both;
+}
+.cf:before, .cf:after {
+    content: " ";
+    display: table;
+}
+
+/* header */
+
+#header, .content-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 1.5em auto 0 auto;
+    border-radius: 0.4rem 0.4rem 0 0;
+    background-color: #fff;
+    padding: 0.8em 4% 0.7em;
+}
+
+#header .home-link {
+    display: block;
+    float: left;
+    background: url("/static/themes/podemos/img/logo.png") no-repeat scroll left 50% transparent;
+    min-width: 310px;
+    min-height: 64px;
+    margin-top: 20px;
+}
+
+#header .headlines {
+    display: block;
+    float: left;
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    text-transform: uppercase;
+}
+
+#header .headlines h2 {
+    color: rgb(140, 69, 147);
+    letter-spacing: 0.2rem;
+    display: block;
+    clear: both;
+}
+
+#header .headlines h3 {
+    padding: 0;
+    margin: 0;
+    font-size: 0.9em;
+    color: rgb(39, 53, 53);
+    line-height: 1em;
+}
+
+.candidates-header {
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    text-transform: uppercase;
+    color: rgb(39, 53, 53);
+}
+
+.candidates-header h3 {
+    display: block;
+    float: left;
+    font-size: 1em;
+}
+
+.candidates-header h4 {
+    display: block;
+    float: right;
+    font-size: 0.8em;
+}
+
+/* main */
+
+.content-wrapper {
+    margin-top: 0;
+}
+
+#main {
+    border-radius: 0px 0px 0.4rem 0.4rem;
+}
+
+/* feature-block */
+
+.feature-block {
+    background-color: #8C4593;
+    color: white;
+    width: 100%;
+    display: block;
+    padding: 0;
+}
+
+.feature-block a {
+    color: white;
+}
+
+.shadow-wrapper {
+    margin: 0;
+}
+
+.campaign-excerpt {
+    text-shadow: 0px 1px 1px rgba(39, 53, 53, 0.7);
+    color: white;
+    text-align: justify;
+    padding: 1em 2em 0 2em;
+    font-size: 1.5em;
+}
+
+.extra-info {
+    padding: 1em 2em;
+}
+
+.extra-info .nav {
+    margin-top: 0.7em;
+}
+
+.extra-info .nav a {
+    background-color: none;
+}
+
+.extra-info .nav a:hover {
+    background-color: transparent;
+    box-shadow: 0px 0px 0px 3px white;
+}
+
+.btn-dark {
+    color: white;
+    box-shadow: 0px 0px 0px 3px rgb(39, 53, 53);
+    background-color: rgb(39, 53, 53);
+    font-size: 1.5em;
+    line-height: 1.6em;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    display: inline-block;
+    padding: 0 0.8em;
+    border: 0.1rem solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.4rem;
+    background-image: none;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    cursor: pointer;
+    transition: color 0.3s cubic-bezier(0.25, 0.25, 0.75, 0.75) 0s;
+}
+
+.btn-dark:hover {
+    text-decoration: none;
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: 0px 0px 0px 3px white;
+}
+
+.btn-dark.btn-vote {
+    float: left;
+    display: block;
+    width: 100%;
+    margin: 0.5em auto;
+}
+
+.featured-item {
+    display: block;
+    float: right;
+    width: 45%;
+    margin-right: 4%;
+    margin-top: 1em;
+    color: white;
+    padding: 0.2em 1em 0.2em 0.2em;
+    border-right: 1px solid #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    font-style: italic;
+    font-weight: 300;
+    text-align: right;
+    font-size: 1.3em;
+    line-height: 1.6em;
+}
+
+.featured-item strong {
+    font-weight: normal;
+    display: block;
+}
+
+/* footer */
+
+.footer {
+    width: 90%;
+    display: block;
+    clear: both;
+    color: #ccc;
+    margin: 1em auto 1em auto;
+    text-align: center;
+    padding: 1em;
+}
+
+.footer a {
+    color: rgb(132, 132, 132);
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+}
+
+/* Small devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    #header, .content-wrapper {
+        width: 98%;
+    }
+
+    .campaign-excerpt {
+        padding: 1em 2em;
+    }
+}
+
+/* Medium devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .feature-block {
+        left: -0.45rem;
+    }
+
+    .shadow-wrapper {
+        padding-right: 0.9rem;
+        padding-left: 0.9rem;
+    }
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+
+}
+
+/* fonts */
+@font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Merriweather Light'), local('Merriweather-Light'), url(/static/themes/podemos/fonts/merriweather_normal_300.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Merriweather'), url(/static/themes/podemos/fonts/merriweather_normal_400.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Merriweather Bold'), local('Merriweather-Bold'), url(/static/themes/podemos/fonts/merriweather_normal_700.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: italic;
+  font-weight: 300;
+  src: local('Merriweather Light Italic'), local('Merriweather-LightItalic'), url(/static/themes/podemos/fonts/merriweather_light_italic_300.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Merriweather Italic'), local('Merriweather-Italic'), url(/static/themes/podemos/fonts/merriweather_italic_400.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Merriweather';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Merriweather Bold Italic'), local('Merriweather-BoldItalic'),url(/static/themes/podemos/fonts/merriweather_bold_italic_700.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Oswald Light'), local('Oswald-Light'), url(/static/themes/podemos/fonts/oswald_300.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Oswald Regular'), local('Oswald-Regular'), url(/static/themes/podemos/fonts/oswald_400.woff) format('woff');
+}
