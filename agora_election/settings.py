@@ -47,6 +47,21 @@ MAX_TOKEN_GUESSES = 5
 # timeframe within which a token is said to be valid
 SMS_TOKEN_EXPIRE_SECS = 60*10
 
+########### data
+
+AGORA_ELECTION_DATA = dict(
+    title="Primarias abiertas al Parlamento Europeo",
+    subtitle="Una candidatura popular y ciudadana",
+    start_voting="20 marzo, 10:00",
+    end_voting="27 marzo, 10:00",
+    num_votes="+1000",
+    candidates=[
+        dict(
+            value="Pablo Iglesias Turrión",
+        ),
+    ],
+)
+
 ########### flask
 
 DEBUG = False

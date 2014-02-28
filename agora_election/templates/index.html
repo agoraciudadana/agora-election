@@ -11,43 +11,53 @@
     <link rel="stylesheet" href="/static/libs/bootstrap-3.1.1/css/bootstrap-theme.min.css" type="text/css" media="all" />
     <link rel="stylesheet" href="/static/themes/current/css/base.css" type="text/css" media="all" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="text/javascript" src="/static/libs/jquery/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="/static/libs/bootstrap-3.1.1/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/static/js/base.js"></script>
 </head>
 <body role="document">
-  <div class="container">
+  <!-- js dependencies -->
+  <script type="text/javascript" src="/static/libs/jquery/jquery-1.11.0.min.js"></script>
+  <script type="text/javascript" src="/static/libs/underscore-1.6.0/underscore-min.js"></script>
+  <script type="text/javascript" src="/static/libs/backbone-1.1.2/backbone-min.js"></script>
+  <script type="text/javascript" src="/static/libs/bootstrap-3.1.1/js/bootstrap.min.js"></script>
+
+  <!-- dynamic data here -->
+    <script>
+        var app_data = {{ data }};
+    </script>
+
+  <!-- templates, mod_pagespeed will optimize them out with outline_javascript -->
+  <script type="text/underscore-template" id="template-home-view">
+    <div class="container">
       <header id="header" class="cf">
         <a class="home-link" href="http://crowdfunding.podemos.info" alt="Portada">
         </a>
 
         <div class="headlines">
-          <h2>Primarias abiertas al Parlamento Europeo</h2>
-          <h3>Una candidatura popular y ciudadana</h3>
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
         </div>
       </header>
       <div id="main" class="main cr" role="main">
         <section class="feature-block cf">
           <div class="shadow-wrapper container-fluid"><div class="row">
             <div class="campaign-excerpt col-xs-12 col-sm-7">
-              <p>Es la hora del protagonismo popular y ciudadano. Ayúdanos a confeccionar la lista electoral votando en 3 sencillos pasos: regístrate, introduce un código que te llegará por SMS. Por último accede a la cabina de votación y selecciona hasta 3 candidatos.</p>
-              <a href="#" class="btn-vote btn-dark">Vota</a>
+              <p>Es la hora del protagonismo popular y ciudadano. Ayúdanos a confeccionar la lista electoral votando en 3 sencillos pasos: regístrate, verifica un código que te llegará por SMS, y accede a la cabina de votación, seleccionando hasta 3 candidatos.</p>
+              <a href="#register" class="btn-vote btn-dark">Vota</a>
             </div>
             <div class="extra-info col-xs-12 col-sm-5">
               <div class="featured-item">
-                <strong>20 marzo, 10:00</strong>
+                <strong><%- start_voting %></strong>
                 <i>Comienzo votación</i>
               </div>
               <div class="featured-item">
-                <strong>55</strong>
+                <strong><%- candidates.length %></strong>
                 <i>Candidatos</i>
               </div>
               <div class="featured-item">
-                <strong>27 marzo, 20:00</strong>
+                <strong><%- end_voting %></strong>
                 <i>Fin votación</i>
               </div>
               <div class="featured-item">
-                <strong>+1,000</strong>
+                <strong><%- num_votes %></strong>
                 <i>Votos</i>
               </div>
               <div class="cf"></div>
@@ -87,5 +97,9 @@
           <a href="//www.podemos.info" target="_blank" alt="Podemos portada">www.podemos.info</a>
         </section>
       </div>
-  </div>
+    </div>
+  </script>
+
+  <!-- real ours js code -->
+  <script type="text/javascript" src="/static/js/base.js"></script>
 </body>

@@ -20,6 +20,7 @@ import json
 
 from flask import Blueprint, request, make_response, render_template, url_for
 from flask import current_app
+from jinja2 import Markup
 
 from checks import *
 from app import db
@@ -239,4 +240,5 @@ def post_sms_auth():
 
 @index.route('/', methods=['GET'])
 def get_index():
-    return current_app.send_static_file("index.html")
+    data = current_app.config.get("AGORA_ELECTION_DATA", dict())
+    return render_template('index.html', data=Markup(json.dumps(data)))
