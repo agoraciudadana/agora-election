@@ -12,7 +12,7 @@ body {
     background-color: #F6FCF2;
 }
 
-body > .container {
+#renderall > .container {
     padding: 0;
 }
 
@@ -155,6 +155,34 @@ body > .container {
     box-shadow: 0px 0px 0px 3px white;
 }
 
+.btn-light {
+    color: white;
+    font-weight: 400;
+    box-shadow: 0px 0px 0px 3px #8C4593;
+    background-color: #8C4593;
+    font-size: 1.5em;
+    line-height: 1.6em;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    display: inline-block;
+    padding: 0 0.8em;
+    border: 0.1rem solid rgba(255, 255, 255, 0.7);
+    border-radius: 0.4rem;
+    background-image: none;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    cursor: pointer;
+    transition: color 0.3s cubic-bezier(0.25, 0.25, 0.75, 0.75) 0s;
+}
+
+.btn-light:hover {
+    color: #8C4593;
+    text-decoration: none;
+    background-color: transparent;
+    border-color: transparent;
+}
+
 .btn-dark.btn-vote {
     float: left;
     display: block;
@@ -221,6 +249,63 @@ body > .container {
     display: block;
     float: right;
     font-size: 0.8em;
+}
+
+/* form views */
+
+.section-title {
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+    font-size: 2em;
+    line-height: 3em;
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+}
+
+.section-header {
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    font-weight: 300;
+    font-size: 1.2em;
+}
+
+form {
+    font-family: 'Merriweather',Georgia,'Times New Roman', Times, serif;
+}
+
+form input.form-control {
+    width: 100%;
+    padding-left: 1%;
+    padding-right: 1%;
+    background-color: #E5E5E5;
+    padding: 0.3em;
+    border: none;
+    border-radius: 0.2rem;
+    box-shadow: none;
+    transition: background-color 0.2s cubic-bezier(0.25, 0.25, 0.75, 0.75) 0s;
+}
+
+form input.form-control:focus, form input.form-control:hover {
+    background-color: rgba(229, 229, 229, 0.7);
+}
+
+form .checkbox {
+    padding-top: 0.7em;
+    padding-bottom: 0.7em;
+}
+
+
+form .textarea-tos {
+    display: block;
+    box-shadow: none;
+    margin-left: 0;
+    border: none;
+    background-color: #EEE;
+    border-radius: 0.2rem;
+    padding: 0.5em;
+    color: #777;
+    font-size: 0.8em;
+    height: 6rem;
+    text-align: justify;
+    overflow-y: auto;
 }
 
 /* Small devices (tablets, 768px and up) */

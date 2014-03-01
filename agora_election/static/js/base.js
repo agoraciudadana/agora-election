@@ -23,32 +23,55 @@
      */
     var AE = this.AE = {}; // AE  means "Agora Election"
     var app = this.app = {};
+    app.current_view = null;
 
     var main = function() {
-        var AppRouter = Backbone.Router.extend({
-            routes: {
-                "": "home"
-            }
-        });
         // Initiate the router
-        app.router = new AppRouter;
-        app.current_view = null;
-
-        app.router.on('route:home', function(actions) {
-            app.current_view = new AE.HomeView();
-        })
+        app.router = new AE.Router();
 
         // Start Backbone history a necessary step for bookmarkable URL's
         Backbone.history.start();
     };
 
+    AE.Router = Backbone.Router.extend({
+        routes: {
+            "": "home",
+            "identify": "identify"
+        },
+
+        home: function() {
+            console.log("home!");
+            app.current_view = new AE.HomeView();
+        },
+
+        identify: function(actions) {
+            console.log("identify!");
+            app.current_view = new AE.IdentityView();
+        }
+    });
+
     AE.ElectionModel = Backbone.Model.extend({});
 
     AE.HomeView = Backbone.View.extend({
-        el: "body",
+        el: "#renderall",
 
         initialize: function() {
             this.template = _.template($("#template-home-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            this.delegateEvents();
+            return this;
+        }
+    });
+
+    AE.IdentityView = Backbone.View.extend({
+        el: "#renderall",
+
+        initialize: function() {
+            this.template = _.template($("#template-identify-view").html());
             this.render();
         },
 

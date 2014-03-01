@@ -48,11 +48,11 @@ class Voter(db.Model):
 
     email = db.Column(db.String(140))
 
+    postal_code = db.Column(db.String(140))
+
     lang_code = db.Column(db.String(6))
 
     receive_mail_updates = db.Column(db.Boolean)
-
-    age = db.Column(db.Integer)
 
     token_guesses = db.Column(db.Integer, default=0)
 

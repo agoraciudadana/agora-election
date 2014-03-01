@@ -13,6 +13,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body role="document">
+  <div id="renderall">
+  </div>
   <!-- js dependencies -->
   <script type="text/javascript" src="/static/libs/jquery/jquery-1.11.0.min.js"></script>
   <script type="text/javascript" src="/static/libs/underscore-1.6.0/underscore-min.js"></script>
@@ -28,7 +30,7 @@
   <script type="text/underscore-template" id="template-home-view">
     <div class="container">
       <header id="header" class="cf">
-        <a class="home-link" href="http://crowdfunding.podemos.info" alt="Portada">
+        <a class="home-link" href="#" alt="Portada">
         </a>
 
         <div class="headlines col-md-6">
@@ -40,8 +42,8 @@
         <section class="feature-block cf">
           <div class="shadow-wrapper container-fluid"><div class="row">
             <div class="campaign-excerpt col-xs-12 col-sm-7">
-              <p>Es la hora del protagonismo popular y ciudadano. Ayúdanos a confeccionar la lista electoral votando en 3 sencillos pasos: regístrate, verifica un código que te llegará por SMS, y accede a la cabina de votación, seleccionando hasta 3 candidatos.</p>
-              <a href="#register" class="btn-vote btn-dark">Vota</a>
+              <p><%- short_description %></p>
+              <a href="#identify" class="btn-vote btn-dark">Vota</a>
             </div>
             <div class="extra-info col-xs-12 col-sm-5">
               <div class="featured-item">
@@ -63,7 +65,7 @@
               <div class="cf"></div>
               <ul class="nav nav-pills nav-justified">
                 <li>
-                  <a href="#faqs" class="">
+                  <a href="#faq" class="">
                     Preguntas Frecuentes
                   </a>
                 </li>
@@ -95,6 +97,75 @@
 
         <section class="footer cr">
           <a href="//www.podemos.info" target="_blank" alt="Podemos portada">www.podemos.info</a>
+        </section>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-identify-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Identifícate (paso 1 de 3)</h2>
+          </div>
+          <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
+            <div class="form-group">
+              <label for="first_name">Nombre</label>
+              <input type="text" class="form-control" id="first_name" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="last_name">Apellidos</label>
+              <input type="text" class="form-control" id="last_name" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" class="form-control" id="email" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="tlf">Teléfono</label>
+              <input type="text" class="form-control" id="tlf" placeholder="">
+            </div>
+            <div class="form-group">
+              <label for="cp">Código postal</label>
+              <input type="text" class="form-control" id="cp" placeholder="">
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="age"> Soy mayor de edad
+              </label>
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="receive_mail_updates"> Recibir actualizaciones por email
+              </label>
+            </div>
+            <div class="textarea-tos">
+              <%- tos.text %>
+            </div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="accept-conditions"> <%- tos.title %>
+              </label>
+            </div>
+            <a href="#verify-sms" class="btn btn-light btn-block">Identificarme</a>
+          </form>
+          <div class="section-header col-xs-12 col-sm-6">
+            <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes ser mayor de edad y tener un móvil con teléfono español para votar. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
+          </div>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a>
         </section>
       </div>
     </div>

@@ -50,7 +50,7 @@ def post_register():
         "last_name": "de tal",
         "email": "email@example.com",
         "tlf": "+34666666666",
-        "age": 18,
+        "postal_code": "41010",
         "receive_updates": true
     }
 
@@ -69,9 +69,9 @@ def post_register():
         ['first_name', lambda x: str_constraint(x, 3, 60)],
         ['last_name', lambda x: str_constraint(x, 3, 100)],
         ['email', email_constraint],
+        ['postal_code', lambda x: int_constraint(x, 1, 100000)],
         ['tlf', lambda x: str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
-        ['age', lambda x: int_constraint(x, 18)],
         ['receive_updates', lambda x: isinstance(x, bool)],
     )
     check_status = constraints_checker(input_checks, data)
@@ -112,7 +112,7 @@ def post_register():
         last_name=data["last_name"],
         email=data["first_name"],
         tlf=data["tlf"],
-        age=data["age"],
+        postal_code=data["tlf"],
         receive_mail_updates=data["receive_updates"],
         lang_code=msg.lang_code,
         status=Voter.STATUS_CREATED,
