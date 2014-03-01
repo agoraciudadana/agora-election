@@ -156,7 +156,7 @@ body {
 }
 
 .btn-light {
-    color: white;
+    color: white !important;
     font-weight: 400;
     box-shadow: 0px 0px 0px 3px #8C4593;
     background-color: #8C4593;
@@ -177,7 +177,7 @@ body {
 }
 
 .btn-light:hover {
-    color: #8C4593;
+    color: #8C4593 !important;
     text-decoration: none;
     background-color: transparent;
     border-color: transparent;
@@ -265,6 +265,8 @@ body {
     font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
     font-weight: 300;
     font-size: 1.2em;
+    text-align: justify;
+    margin-top: 1em;
 }
 
 form {
@@ -306,6 +308,10 @@ form .textarea-tos {
     height: 6rem;
     text-align: justify;
     overflow-y: auto;
+}
+
+form #error-message {
+    color: rgb(169, 68, 66);
 }
 
 /* Small devices (tablets, 768px and up) */

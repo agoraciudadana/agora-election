@@ -120,47 +120,101 @@
           </div>
           <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
             <div class="form-group">
-              <label for="first_name">Nombre</label>
-              <input type="text" class="form-control" id="first_name" placeholder="">
+              <label for="first-name">Nombre</label>
+              <input type="text" class="form-control" id="first-name" placeholder="">
+              <p class="help-block"></p>
             </div>
             <div class="form-group">
-              <label for="last_name">Apellidos</label>
-              <input type="text" class="form-control" id="last_name" placeholder="">
+              <label for="last-name">Apellidos</label>
+              <input type="text" class="form-control" id="last-name" placeholder="">
+              <p class="help-block"></p>
             </div>
             <div class="form-group">
               <label for="email">Email</label>
               <input type="email" class="form-control" id="email" placeholder="">
+              <p class="help-block"></p>
             </div>
             <div class="form-group">
               <label for="tlf">Teléfono</label>
               <input type="text" class="form-control" id="tlf" placeholder="">
+              <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
             </div>
             <div class="form-group">
-              <label for="cp">Código postal</label>
-              <input type="text" class="form-control" id="cp" placeholder="">
+              <label for="postal-code">Código postal</label>
+              <input type="text" class="form-control" id="postal-code" placeholder="">
+              <p class="help-block"></p>
             </div>
-            <div class="checkbox">
+            <div class="checkbox form-group">
               <label>
-                <input type="checkbox" id="age"> Soy mayor de edad
+                <input type="checkbox" id="above-age"> Soy mayor de edad
+                <p class="help-block"></p>
               </label>
             </div>
-            <div class="checkbox">
+            <div class="checkbox form-group">
               <label>
-                <input type="checkbox" id="receive_mail_updates"> Recibir actualizaciones por email
+                <input type="checkbox" id="receive-mail-updates"> Recibir actualizaciones por email
+                <p class="help-block"></p>
               </label>
             </div>
             <div class="textarea-tos">
               <%- tos.text %>
             </div>
-            <div class="checkbox">
+            <div class="checkbox form-group">
               <label>
                 <input type="checkbox" id="accept-conditions"> <%- tos.title %>
+                <p class="help-block"></p>
               </label>
             </div>
-            <a href="#verify-sms" class="btn btn-light btn-block">Identificarme</a>
+            <div id="error-message"></div>
+            <button id="identify-action" class="btn btn-light btn-block">Identificarme</button>
           </form>
           <div class="section-header col-xs-12 col-sm-6">
             <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes ser mayor de edad y tener un móvil con teléfono español para votar. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
+          </div>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a>
+        </section>
+      </div>
+    </div>
+  </script>
+
+
+  <script type="text/underscore-template" id="template-verify-sms-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Verifica tu código SMS (paso 2 de 3)</h2>
+          </div>
+          <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
+            <% if (!tlf) { %>
+              <div class="form-group">
+                <label for="tlf">Teléfono</label>
+                <input type="text" class="form-control" id="tlf" placeholder="">
+                <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
+              </div>
+            <% } %>
+            <div class="form-group">
+              <label for="sms-code">Código SMS</label>
+              <input type="text" class="form-control" id="sms-code" placeholder="">
+              <p class="help-block"></p>
+            </div>
+            <div id="error-message"></div>
+            <button id="verify-action" class="btn btn-light btn-block">Verificar código SMS</button>
+          </form>
+          <div class="section-header col-xs-12 col-sm-6">
+            <p>En este segundo paso debes de introducir un código SMS que has debido recibir en tu teléfono móvil para que verifiquemos tu identidad y así puedas entrar a la cabina de votación. Si no te ha llegado el mensaje SMS</strong>, si aun no te lo hemos enviado, si ha caducado o si estás teniendo problemas, puedes probar a <a href="#identify">identificarte de nuevo </a>. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
           </div>
         </section>
 

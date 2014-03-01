@@ -60,6 +60,7 @@ AGORA_ELECTION_DATA = dict(
     start_voting="20 marzo, 10:00",
     end_voting="27 marzo, 10:00",
     num_votes="+1000",
+    tlf_no_rx=ALLOWED_TLF_NUMS_RX,
     candidates=[
         dict(
             value="Pablo Iglesias Turrión",

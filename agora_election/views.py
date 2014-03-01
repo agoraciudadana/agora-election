@@ -50,7 +50,7 @@ def post_register():
         "last_name": "de tal",
         "email": "email@example.com",
         "tlf": "+34666666666",
-        "postal_code": "41010",
+        "postal_code": 41010,
         "receive_updates": true
     }
 
