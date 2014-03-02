@@ -206,7 +206,7 @@ def post_sms_auth():
                      error_codename="need_new_token")
 
     # check token
-    if not constant_time_compare(data["token"], voter.message.token):
+    if not constant_time_compare(data["token"].upper(), voter.message.token):
         voter.token_guesses += 1
         voter.modified = datetime.utcnow()
         db.session.add(voter)
@@ -237,6 +237,68 @@ def post_sms_auth():
         sha1_hmac=salted_hmac(key, message, "").hexdigest()
     )
     return make_response(json.dumps(ret_data), 200)
+
+
+@api.route('/notify_vote/', methods=['POST'])
+def post_notify_vote():
+    '''
+    Receives an authenticated message from agora saying "someone with id XX
+    has voted", and we have to mark this voter as voted so that the voter
+    cannot vote again.
+
+    Example request:
+    POST /api/v1/notify_vote/
+    {
+        "identifier": "<id>",
+        "sha1_hmac": "AA4TL219",
+    }
+
+    Successful response: STATUS 200
+    '''
+    from tasks import send_sms
+    from models import Voter, Message
+
+    # first of all, parse input data
+    data = request.get_json(force=True, silent=True)
+    if data is None:
+        return error("invalid json", error_codename="not_json")
+
+    # initial input checking
+    input_checks = (
+        ['identifier', lambda x: str_constraint(x, rx_pattern="\d{1,12}")],
+        ['sha1_hmac', lambda x: str_constraint(x, rx_pattern="[0-9a-z]{40}")],
+    )
+    check_status = constraints_checker(input_checks, data)
+    if  check_status is not True:
+        return check_status
+
+    # check that voter has not voted
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    set_serializable()
+    voters = db.session.query(Voter)\
+        .filter(Voter.election_id == curr_eid,
+                Voter.status == Voter.STATUS_AUTHENTICATED,
+                Voter.is_active == True,
+                Voter.id == int(data['identifier']))
+    if voters.count() == 0:
+        unset_serializable()
+        return error("Invalid identifier", error_codename="invalid_id")
+    voter = voters.first()
+
+    # check token
+    key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
+    hmac = salted_hmac(key, data['identifier'], "").hexdigest()
+    if not constant_time_compare(data["sha1_hmac"], hmac):
+        unset_serializable()
+        return error("Invalid hmac", error_codename="invalid_hmac")
+
+    voter.status = Voter.STATUS_VOTED
+    voter.modified = datetime.utcnow()
+    db.session.add(voter)
+    db.session.commit()
+    # okey now we have finished the critical serialized path, we can breath now
+    unset_serializable()
+    return make_response("", 200)
 
 @index.route('/', methods=['GET'])
 def get_index():

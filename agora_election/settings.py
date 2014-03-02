@@ -47,6 +47,8 @@ MAX_TOKEN_GUESSES = 5
 # timeframe within which a token is said to be valid
 SMS_TOKEN_EXPIRE_SECS = 60*10
 
+AGORA_SHARED_SECRET_KEY = "<shared key>"
+
 ########### data
 
 AGORA_ELECTION_DATA = dict(
@@ -54,6 +56,7 @@ AGORA_ELECTION_DATA = dict(
         name="www.podemos.info",
         url="//www.podemos.info",
     ),
+    election_url='https://local.dev/edulix/hola/election/primarias-de-la-confederacion-pirata-para-el-parlamento-europeo15/vote',
     title="Primarias abiertas al Parlamento Europeo",
     subtitle="Una candidatura popular y ciudadana",
     short_description="Es la hora del protagonismo popular y ciudadano. Ayúdanos a confeccionar la lista electoral votando en 3 sencillos pasos: regístrate, verifica un código que te llegará por SMS, y accede a la cabina de votación, seleccionando hasta 3 candidatos.",

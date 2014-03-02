@@ -259,8 +259,7 @@
                 'puedes votar dos veces.', false);
             } else if (data.error_codename == "blacklisted") {
                 self.showErrorMessage('¡Vaya! Tu petición ha sido bloqueada. Puede ' +
-                'que hayas estado intentado hacer cosas malas, aunque también ' +
-                'puede que sea un error, o que alguien haya estado haciendo ' +
+                'que sea un error, o que alguien haya estado haciendo ' +
                 'cosas raras. Si quieres puedes <a href="#contact">contactar ' +
                 'con nosotros</a> para contarnos tu problema.', false);
             } else if (data.error_codename == "wait_hour") {
@@ -352,8 +351,9 @@
             var tlf = null;
             if (app_data.tlf) {
                 tlf = app_data.tlf;
+            } else {
+                tlf = $("#tlf").val();
             }
-            var tlf = $("#tlf").val();
             var sms_code = $("#sms-code").val().trim().toUpperCase();
 
             // start checking
@@ -362,13 +362,13 @@
                 this.setError("#sms-code", "Código introducido inválido");
             }
 
-            app_data.tlf = Checker.tlf(tlf)
-            if (!app_data.tlf) {
+            tlf = Checker.tlf(tlf)
+            if (!tlf) {
                 this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
             }
 
             var inputData = {
-                "tlf": app_data.tlf,
+                "tlf": tlf,
                 "token": sms_code
             };
 
@@ -380,8 +380,17 @@
             })
             .done(function(data) {
                 console.log("data = ");
-                console.log(data);
-                // TODO connect with agora
+                try {
+                    data = JSON.parse(data);
+                } catch(e) {
+                    self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
+                    'formulario. Por favor, ponte en <a href="#contact">contacto ' +
+                    'con nosotros</a> explicando en detalle los pasos que seguiste ' +
+                    'para que podamos reproducir y arreglar el problema.', false);
+                    return;
+                }
+                var url = app_data.election_url + "?message=" + encodeURIComponent(data.message) + "&sha1_hmac=" + encodeURIComponent(data.sha1_hmac);
+                document.location.href=url;
             })
             .fail(this.processError);
         },
