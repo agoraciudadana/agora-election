@@ -237,6 +237,7 @@ body {
     font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
     text-transform: uppercase;
     color: rgb(39, 53, 53);
+    margin-bottom: 1em;
 }
 
 .candidates-header h3 {
@@ -249,6 +250,62 @@ body {
     display: block;
     float: right;
     font-size: 0.8em;
+}
+
+.candidates-wrapper {
+    padding: 0;
+}
+
+.candidate-item {
+    padding: 0 0 2em 0;
+    font-family: 'Merriweather',Georgia,'Times New Roman',Times,serif;
+    font-weight: 300;
+}
+
+.candidate-item img {
+    padding: 0;
+    border-radius: 0.4rem;
+    display: block;
+    float: left;
+    width: 150px;
+    margin-left: -100%;
+}
+
+.candidate-item h3 {
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+}
+
+
+.candidate-item .info-points {
+    padding: 0;
+    color: #8C4593;
+}
+
+.candidate-item .info-points a {
+    display: block;
+    color: #8C4593;
+    clear: both;
+    width: 100%;
+}
+
+.candidate-item .info-points .col-xs-7 {
+    padding: 0;
+}
+
+.candidate-item p.short-description {
+    text-align: justify;
+}
+
+.candidate-item .description {
+    display: block;
+    float: left;
+    padding-left: 165px;
+    padding-right: 1em;
+    width: 100%;
+}
+
+.candidate-item .description h3 {
+    margin-top: 0;
 }
 
 /* form views */

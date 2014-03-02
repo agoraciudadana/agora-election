@@ -20,6 +20,7 @@
   <script type="text/javascript" src="/static/libs/underscore-1.6.0/underscore-min.js"></script>
   <script type="text/javascript" src="/static/libs/backbone-1.1.2/backbone-min.js"></script>
   <script type="text/javascript" src="/static/libs/bootstrap-3.1.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="/static/libs/jquery-shuffle/jquery-shuffle.js"></script>
 
   <!-- dynamic data here -->
     <script>
@@ -59,23 +60,23 @@
                 <i>Fin votación</i>
               </div>
               <div class="featured-item">
-                <strong><%- num_votes %></strong>
-                <i>Votos</i>
+                <strong><%- num_seats %></strong>
+                <i>Ganadores</i>
               </div>
               <div class="cf"></div>
               <ul class="nav nav-pills nav-justified">
                 <li>
-                  <a href="#faq" class="">
+                  <a href="#faq">
                     Preguntas Frecuentes
                   </a>
                 </li>
                 <li>
-                  <a href="#authorities" class="">
+                  <a href="#authorities">
                     Autoridades de Votación
                   </a>
                 </li>
                 <li>
-                  <a href="#security-center" class="">
+                  <a href="#security-center">
                     Centro de seguridad
                   </a>
                 </li>
@@ -89,8 +90,50 @@
             <h3>Candidaturas</h3>
             <h4>En orden aleatorio</h4>
           </div>
-          <div class="candidates-wrapper">
-            <!-- TODO -->
+          <div class="candidates-wrapper container-fluid">
+            <% for(var i = 0; i< candidates.length; i++) { %>
+              <% if (i > 1 && i % 2 == 0) { %>
+                </div>
+                <div class="candidates-wrapper container-fluid">
+              <% } %>
+              <div class="col-xs-12 col-sm-6 candidate-item">
+                <div class="cf">
+                  <div class="description">
+                    <h3><%- candidates[i].value %></h3>
+                    <p class="short-description"><%- AE.shortDetails(candidates[i].details) %></p>
+                    <div class="container-fluid info-points">
+                      <div class="col-xs-7">
+                        <a href="#" alt="Presentación y motivos" class="details" data-details="<%- candidates[i].details %>">
+                          Presentación y motivos
+                        </a>
+                        <% if (AE.findUrlByTitle(candidates[i].urls, "Web") != null) { %>
+                          <a href="<%- AE.findUrlByTitle(candidates[i].urls, "Web").url %>" target="_blank" alt="Web">
+                            Web
+                          </a>
+                        <% } %>
+                      </div>
+                      <div class="col-xs-5">
+                        <% if (AE.findUrlByTitle(candidates[i].urls, "@") != null) { %>
+                          <a href="<%- AE.findUrlByTitle(candidates[i].urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidates[i].urls, "@").title %>">
+                            Twitter
+                          </a>
+                        <% } %>
+                        <% if (AE.findUrlByTitle(candidates[i].urls, "Facebook") != null) { %>
+                          <a href="<%- AE.findUrlByTitle(candidates[i].urls, "Facebook").url %>" target="_blank" alt="Facebook">
+                            Facebook
+                          </a>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                  <% if (candidates[i].media_url.length > 0) { %>
+                    <img src="<%- candidates[i].media_url %>" alt="<%- candidates[i].value %>" />
+                  <% } else { %>
+                    <img src="/static/themes/current/img/anon_icon.png" alt="<%- candidates[i].value %>" />
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
           </div>
         </section>
 

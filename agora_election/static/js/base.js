@@ -114,11 +114,34 @@
         },
 
         render: function() {
+            app_data.candidates = $.shuffle(app_data.candidates);
             this.$el.html(this.template(app_data));
             this.delegateEvents();
             return this;
         }
     });
+
+    /**
+     * Process the long description of a candidate getting only some short
+     * description
+     */
+    AE.shortDetails = function(description)  {
+        var ret = description.substr(0, 140);
+        return ret.replace(/(<\/p>|<p>|<p|p>|<\/|>|<)/g, "") + " ..";
+    }
+
+    /**
+     * Return the dict item with the given name from an url list of a candidate,
+     * or null.
+     */
+    AE.findUrlByTitle = function(urls, title)  {
+        for (var i = 0; i < urls.length; i++) {
+            if (urls[i].title.indexOf(title) != -1) {
+                return urls[i];
+            }
+        }
+        return null;
+    }
 
     /**
      * Identify view - shows the form where the user enters identification
