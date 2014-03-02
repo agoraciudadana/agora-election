@@ -19,11 +19,13 @@
 import json
 
 from flask import Blueprint, request, make_response, render_template, url_for
+from flask.ext.mail import Message as MailMessage
+from flask.ext.babel import gettext, ngettext
 from flask import current_app
 from jinja2 import Markup
 
 from checks import *
-from app import db
+from app import db, app_mail
 from crypto import constant_time_compare, salted_hmac, get_random_string
 
 api = Blueprint('api', __name__)
@@ -298,6 +300,59 @@ def post_notify_vote():
     db.session.commit()
     # okey now we have finished the critical serialized path, we can breath now
     unset_serializable()
+    return make_response("", 200)
+
+
+@api.route('/contact/', methods=['POST'])
+def post_contact():
+    '''
+    Receives an contact form that will be sent to our admins.
+
+    Example request:
+    POST /api/v1/contact/
+    {
+        "name": "Pepito Grillo",
+        "email": "me@example.com",
+        "tlf": "+34666666666",
+        "text_body": "message",
+    }
+
+    Successful response: STATUS 200
+    '''
+    from models import Voter, Message
+
+    # first of all, parse input data
+    data = request.get_json(force=True, silent=True)
+    if data is None:
+        return error("invalid json", error_codename="not_json")
+
+    # initial input checking
+    input_checks = (
+        ['name', lambda x: str_constraint(x, 5, 160)],
+        ['body', lambda x: str_constraint(x, 10, 4000)],
+        ['email', email_constraint],
+        ['tlf', lambda x: len(x) == 0 or str_constraint(
+            x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
+    )
+    check_status = constraints_checker(input_checks, data)
+    if  check_status is not True:
+        return check_status
+
+    subject = gettext("[%(site)s] Contact msg from %(name)s",
+                       site=current_app.config.get('SERVER_NAME', ''),
+                       name=data['name'])
+    recipients = [mail_addr
+                  for name, mail_addr in current_app.config.get('ADMINS', [])]
+    msg = MailMessage(subject=subject,
+                      sender=current_app.config.get('MAIL_DEFAULT_SENDER', []),
+                      recipients=recipients)
+    msg.body = gettext("Message from %(name)s <%(email)s> (tlf %(tlf)s): \n%(body)s",
+                       name=data['name'],
+                       tlf=data['tlf'],
+                       email=data['email'],
+                       body=data['body'])
+    app_mail.send(msg)
+
     return make_response("", 200)
 
 @index.route('/', methods=['GET'])

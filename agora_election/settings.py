@@ -72,6 +72,37 @@ AGORA_ELECTION_DATA = dict(
     tos=dict(
         title="He leído y acepto las condiciones",
         text="De acuerdo con lo dispuesto en la Ley Orgánica 15/1999, de 13 de diciembre, de protección de datos de carácter personal, informamos que los datos personales recogidos aquí serán incorporados a un fichero titularidad de la Asociación por la Participación Social y Cultural con CIF G8693671 creada para esta la gestión administrativa de esta iniciativa. El fichero está inscrito en el Registro General de la Agencia Española de Protección de Datos. Mediante el envío del formulario existente en esta página web, el/la remitente presta su consentimiento al tratamiento automatizado de los datos incluidos en el mismo. Nos comprometemos asimismo al uso responsable y confidencial de los datos, garantizando que los datos de las/los usuarios se tratarán de acuerdo con las exigencias legales. En ningún caso los datos facilitados serán objeto de venta ni cesión a terceros. Podrá ejercitar los derechos de acceso, rectificación, cancelación y oposición establecidos en dicha Ley a través de correo electrónica, adjuntando fotocopia de su DNI/Pasaporte, en la siguiente dirección: participasocialcultural@gmail.com"
+    ),
+    faq_questions=[
+        dict(
+            question="¿cual es la pregunta?",
+            answer="algo lorem ipsum"
+        ),
+        dict(
+            question="¿cual es la preguntaaa?",
+            answer="algo lorem ipsum algo lorem ipsum"
+        ),
+    ],
+    authorities=[
+        dict(
+            name="AgoraVoting",
+            url="https://agoravoting.com",
+            description="<p>Es la plataforma de votación de software libre con la que se realizan estas primarias. Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p>"
+        ),
+        dict(
+            name="Fundación Civio",
+            url="http://civio.es",
+            description="<p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p><p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p>"
+        ),
+        dict(
+            name="Hackandalus",
+            url="https://hackandalus.net",
+            description="<p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p><p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p>"
+        ),
+    ],
+    contact=dict(
+        email="agora@agoravoting.com",
+        twitter_username="agoravoting"
     )
 )
 
@@ -115,6 +146,17 @@ SMS_PASSWORD = ''
 SMS_URL = 'http://www.altiria.net/api/http'
 SMS_SENDER_ID = ''
 
+########### mail
+
+# These are the default
+#MAIL_SERVER  = "localhost"
+#MAIL_PORT = 25
+#MAIL_DEBUG =~ app.debug
+#MAIL_USE_TLS = False
+#MAIL_USE_SSL = False
+#MAIL_USERNAME = None
+#MAIL_PASSWORD = None
+MAIL_DEFAULT_SENDER = "agora@example.com"
 
 if os.path.isfile(os.path.join(ROOT_PATH, "custom_settings.py")):
     from custom_settings import *

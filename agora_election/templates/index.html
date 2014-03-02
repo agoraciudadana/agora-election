@@ -70,7 +70,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#election-authorities" class="">
+                  <a href="#authorities" class="">
                     Autoridades de Votación
                   </a>
                 </li>
@@ -96,7 +96,7 @@
 
 
         <section class="footer cr">
-          <a href="//www.podemos.info" target="_blank" alt="Podemos portada">www.podemos.info</a>
+          <a href="//www.podemos.info" target="_blank" alt="Podemos portada">www.podemos.info</a> | <a href="#contact">Contacta</a>
         </section>
       </div>
     </div>
@@ -174,12 +174,11 @@
         </section>
 
         <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a>
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
         </section>
       </div>
     </div>
   </script>
-
 
   <script type="text/underscore-template" id="template-verify-sms-view">
     <div class="container">
@@ -219,7 +218,150 @@
         </section>
 
         <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a>
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
+        </section>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-faq-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid" id="faq-list">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Preguntas Frecuentes</h2>
+          </div>
+          <% for(var i = 0; i < faq_questions.length; i++) { %>
+          <a data-toggle="collapse" data-parent="#faq-list" href="#q<%- (i+1) %>">
+            <h3><%- (i+1) %>. <%- faq_questions[i].question %></h3>
+          </a>
+          <div class="collapse" id="q<%- (i+1) %>">
+            <%= faq_questions[i].answer %>
+          </div>
+          <% } %>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
+        </section>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-authorities-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid" id="faq-list">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Autoridades</h2>
+            <p>Las autoridades de la votación juegan un papel fundamental. La fortaleza del sistema de seguridad usado en esta votación reside en un <strong>sistema de seguridad compartida</strong> análogo a los apoderados e interventores en las elecciones tradicionales, donde la clave cifrada de la votación se genera de forma distribuida por un conjunto de <strong>autoridades independientes de la votación</strong>, que velan por el secreto del voto y son las que ejecutan el recuento.</p>
+
+            <p>Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>. Son <%- authorities.length %> las autoridades en esta votación:</p>
+
+          <% for(var i = 0; i < authorities.length; i++) { %>
+            <h3><%- authorities[i].name %></h3>
+            <h4><a href="<%- authorities[i].url %>"><%- authorities[i].url %></a></h4>
+            <%= authorities[i].description %>
+          <% } %>
+          </div>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
+        </section>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-contact-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Contacta con nosotros</h2>
+          </div>
+          <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
+            <div class="form-group">
+              <label for="name">Nombre y Apellidos</label>
+              <input type="text" class="form-control" id="name" placeholder="">
+              <p class="help-block"></p>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" class="form-control" id="email" placeholder="">
+              <p class="help-block">Obligatorio. Necesitamos saber tu dirección de email para poder responderte</p>
+            </div>
+              <div class="form-group">
+                <label for="tlf">Teléfono</label>
+                <input type="text" class="form-control" id="tlf" placeholder="">
+                <p class="help-block">Opcional. Si has tenido algún problema con tu número de teléfono, especifica aquí con cual</p>
+              </div>
+            <div class="form-group">
+              <textarea id="text-body" class="col-xs-12" rows="5" placeholder="Escribe aquí tu mensaje"></textarea>
+              <p class="help-block"></p>
+            </div>
+            <div id="error-message"></div>
+            <button id="send-message" class="btn btn-light btn-block">Contactar</button>
+          </form>
+          <div class="section-header col-xs-12 col-sm-6">
+            <p>Si has tenido algún problema en el proceso de votación, o si tienes alguna duda o consulta que hacernos, puedes contactar con nosotros a través de este formulario de contacto. También puedes hacerlo enviándonos un email a <a href="mailto:<%- contact.email %>" target="_blank"><%- contact.email %></a> o contáctanos por twitter en <a href="https://twitter.com/<%- contact.twitter_username %>" target="_blank">@<%- contact.twitter_username %></a>.</p>
+          </div>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
+        </section>
+      </div>
+    </div>
+  </script>
+
+    <script type="text/underscore-template" id="template-mail-sent-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- title %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid" id="faq-list">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Mensaje enviado</h2>
+            <p>Ya hemos recibido tu mensaje. Lo leeremos y contestareamos con la mayor brevedad posible. Gracias por ponerte en contacto con nosotros.</p>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
         </section>
       </div>
     </div>

@@ -273,6 +273,12 @@ form {
     font-family: 'Merriweather',Georgia,'Times New Roman', Times, serif;
 }
 
+#faq-list {
+    font-family: 'Merriweather',Georgia,'Times New Roman', Times, serif;
+    font-weight: 300;
+    text-align: justify;
+}
+
 form input.form-control {
     width: 100%;
     padding-left: 1%;
@@ -295,7 +301,7 @@ form .checkbox {
 }
 
 
-form .textarea-tos {
+form .textarea-tos, form .form-group textarea {
     display: block;
     box-shadow: none;
     margin-left: 0;
@@ -308,6 +314,12 @@ form .textarea-tos {
     height: 6rem;
     text-align: justify;
     overflow-y: auto;
+}
+
+form .form-group textarea {
+    margin-bottom: 1em;
+    font-size: 1em;
+    background-color: #E5E5E5 !important;
 }
 
 form #error-message {

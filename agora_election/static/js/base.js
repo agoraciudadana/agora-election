@@ -65,7 +65,11 @@
         routes: {
             "": "home",
             "identify": "identify",
-            "verify-sms": "verify_sms"
+            "verify-sms": "verify_sms",
+            "faq": "faq",
+            "authorities": "authorities",
+            "contact": "contact",
+            'mail-sent': 'mail_sent'
         },
 
         home: function() {
@@ -79,6 +83,22 @@
 
         verify_sms: function() {
             app.current_view = new AE.VerifySMSView();
+        },
+
+        faq: function() {
+            app.current_view = new AE.FAQView();
+        },
+
+        authorities: function() {
+            app.current_view = new AE.AuthoritiesView();
+        },
+
+        contact: function() {
+            app.current_view = new AE.ContactView();
+        },
+
+        mail_sent: function() {
+            app.current_view = new AE.MailSentView();
         }
     });
 
@@ -434,6 +454,206 @@
                 'con nosotros</a> explicando en detalle los pasos que seguiste ' +
                 'para que podamos reproducir y arreglar el problema.', false);
             }
+        }
+    });
+
+    /**
+     * Authorities list view
+     */
+    AE.AuthoritiesView = Backbone.View.extend({
+        el: "#renderall",
+
+        initialize: function() {
+            this.template = _.template($("#template-authorities-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            this.delegateEvents();
+            return this;
+        }
+    });
+
+    /**
+     * FAQ view
+     */
+    AE.FAQView = Backbone.View.extend({
+        el: "#renderall",
+
+        initialize: function() {
+            this.template = _.template($("#template-faq-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            this.delegateEvents();
+            return this;
+        }
+    });
+
+    /**
+     * Mail sent view
+     */
+    AE.MailSentView = Backbone.View.extend({
+        el: "#renderall",
+
+        initialize: function() {
+            this.template = _.template($("#template-mail-sent-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            this.delegateEvents();
+            return this;
+        }
+    });
+
+    /**
+     * Contact form view
+     */
+    AE.ContactView = Backbone.View.extend({
+        el: "#renderall",
+
+        events: {
+            'click #send-message': 'processForm'
+        },
+
+        initialize: function() {
+            this.template = _.template($("#template-contact-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            this.delegateEvents();
+            return this;
+        },
+
+        /**
+         * Used in setError and processForm to detect errors
+         */
+        errorFlag: false,
+
+        /**
+         * detects when we are sending a petition
+         */
+        sendingFlag: false,
+
+        /**
+         *  Help function to set the
+         */
+        setError: function(selector, text) {
+            this.errorFlag = true;
+            $(selector).parent().find(".help-block").html(text);
+            $(selector).closest(".form-group").addClass("has-error");
+        },
+
+        /**
+         * Does the heavy duty stuff in this view, processes the form, showing
+         * errors if any, or sending the data and showing the SMS code
+         * verification form.
+         */
+        processForm: function(e) {
+            if (this.sendingFlag) {
+                return;
+            }
+            // reset errors
+            this.errorFlag = false;
+            $("#send-message").attr("disabled", "disabled");
+            $(".form-group.has-error .help-block").each(function() {
+                $(this).html("");
+            });
+            $(".form-group").removeClass("has-error");
+
+            // get the data
+            var name = $("#name").val().trim();
+            var email = $("#email").val().trim();
+            var tlf = $("#tlf").val().trim();
+            var text_body = $("#text-body").val().trim();
+
+            // start checking
+            if (name.length < 3 || name.length >= 60)
+            {
+                this.setError("#name", "Obligatorio, de 3 a 60 caracteres");
+            }
+
+            if (email.length < 3 || email.length >= 140 ||
+                    !Checker.email(email))
+            {
+                this.setError("#email", "Debes introducir una dirección email válida");
+            }
+
+            if (tlf.length > 0) {
+                tlf = Checker.tlf(tlf);
+                if (!tlf) {
+                    this.setError("#tlf", "Introduce un número de teléfono válido, por ejemplo: 666 666 666");
+                }
+            }
+
+            if (name.length < 5 || name.length >= 160)
+            {
+                this.setError("#name", "Obligatorio, de 5 a 160 caracteres");
+            }
+
+            if (text_body.length < 10 || text_body.length >= 4000)
+            {
+                this.setError("#text-body", "Obligatorio, de 10 a 4000 caracteres");
+            }
+
+            if (this.errorFlag) {
+                $("#send-message").removeAttr("disabled");
+                return;
+            }
+
+            this.sendingFlag = true;
+
+            var inputData = {
+                "name": name,
+                "email": email,
+                "tlf": tlf,
+                "body": text_body
+            };
+
+            var self = this;
+            var jqxhr = $.ajax("/api/v1/contact/", {
+                data: JSON.stringify(inputData),
+                contentType : 'application/json',
+                type: 'POST',
+            })
+            .done(function(data) {
+                console.log("data = ");
+                console.log(data);
+                self.sendingFlag = false;
+                app.router.navigate("mail-sent", {trigger: true});
+            })
+            .fail(this.processError);
+        },
+
+        showErrorMessage: function(message, allow_try_again) {
+            $("#error-message").html(message);
+            if (allow_try_again) {
+                $("#send-message").removeAttr("disabled");
+            }
+        },
+
+        processError: function(jqXHR, textStatus) {
+            var self = app.current_view;
+            self.sendingFlag = false;
+            console.log("fail = " + jqXHR.responseText);
+            try {
+                var data = JSON.parse(jqXHR.responseText);
+            } catch(e) {
+                self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
+                'formulario. Por favor, ponte en contacto con nosotros ' +
+                'enviandonos un email o por twitter.', false);
+                return;
+            }
+            self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
+            'formulario. Por favor, ponte en contacto con nosotros ' +
+            'enviandonos un email o por twitter.', false);
         }
     });
 

@@ -28,11 +28,13 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from flask.ext.babel import Babel
+from flask.ext.mail import Mail
 
 # bootstrap our app
 app_flask = Flask(__name__)
 babel = Babel(app_flask)
 db = SQLAlchemy(app_flask)
+app_mail = Mail(app_flask)
 app = Celery("app")
 
 from tasks import *
