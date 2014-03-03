@@ -39,7 +39,7 @@ body {
 #header .home-link {
     display: block;
     float: left;
-    background: url("/static/themes/podemos/img/logo.png") no-repeat scroll left 50% transparent;
+    background: url("../img/logo.png") no-repeat scroll left 50% transparent;
     min-width: 310px;
     min-height: 64px;
     margin-top: 20px;
@@ -459,54 +459,54 @@ form #error-message {
     font-family: 'Merriweather';
     font-style: normal;
     font-weight: 300;
-    src: local('Merriweather Light'), local('Merriweather-Light'), url(/static/themes/podemos/fonts/merriweather_normal_300.woff) format('woff');
+    src: local('Merriweather Light'), local('Merriweather-Light'), url(../fonts/merriweather_normal_300.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Merriweather';
     font-style: normal;
     font-weight: 400;
-    src: local('Merriweather'), url(/static/themes/podemos/fonts/merriweather_normal_400.woff) format('woff');
+    src: local('Merriweather'), url(../fonts/merriweather_normal_400.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Merriweather';
     font-style: normal;
     font-weight: 700;
-    src: local('Merriweather Bold'), local('Merriweather-Bold'), url(/static/themes/podemos/fonts/merriweather_normal_700.woff) format('woff');
+    src: local('Merriweather Bold'), local('Merriweather-Bold'), url(../fonts/merriweather_normal_700.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Merriweather';
     font-style: italic;
     font-weight: 300;
-    src: local('Merriweather Light Italic'), local('Merriweather-LightItalic'), url(/static/themes/podemos/fonts/merriweather_light_italic_300.woff) format('woff');
+    src: local('Merriweather Light Italic'), local('Merriweather-LightItalic'), url(../fonts/merriweather_light_italic_300.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Merriweather';
     font-style: italic;
     font-weight: 400;
-    src: local('Merriweather Italic'), local('Merriweather-Italic'), url(/static/themes/podemos/fonts/merriweather_italic_400.woff) format('woff');
+    src: local('Merriweather Italic'), local('Merriweather-Italic'), url(../fonts/merriweather_italic_400.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Merriweather';
     font-style: italic;
     font-weight: 700;
-    src: local('Merriweather Bold Italic'), local('Merriweather-BoldItalic'),url(/static/themes/podemos/fonts/merriweather_bold_italic_700.woff) format('woff');
+    src: local('Merriweather Bold Italic'), local('Merriweather-BoldItalic'),url(../fonts/merriweather_bold_italic_700.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Oswald';
     font-style: normal;
     font-weight: 300;
-    src: local('Oswald Light'), local('Oswald-Light'), url(/static/themes/podemos/fonts/oswald_300.woff) format('woff');
+    src: local('Oswald Light'), local('Oswald-Light'), url(../fonts/oswald_300.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Oswald';
     font-style: normal;
     font-weight: 400;
-    src: local('Oswald Regular'), local('Oswald-Regular'), url(/static/themes/podemos/fonts/oswald_400.woff) format('woff');
+    src: local('Oswald Regular'), local('Oswald-Regular'), url(../fonts/oswald_400.woff) format('woff');
 }

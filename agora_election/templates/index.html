@@ -7,20 +7,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Podemos &raquo; Primarias abiertas al Parlamento Europeo</title>
-    <link rel="stylesheet" href="/static/libs/bootstrap-3.1.1/css/bootstrap.min.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="/static/libs/bootstrap-3.1.1/css/bootstrap-theme.min.css" type="text/css" media="all" />
-    <link rel="stylesheet" href="/static/themes/current/css/base.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="{{ static_path }}/libs/bootstrap-3.1.1/css/bootstrap.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="{{ static_path }}/libs/bootstrap-3.1.1/css/bootstrap-theme.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="{{ static_path }}/themes/current/css/base.css" type="text/css" media="all" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body role="document">
   <div id="renderall">
   </div>
   <!-- js dependencies -->
-  <script type="text/javascript" src="/static/libs/jquery/jquery-1.11.0.min.js"></script>
-  <script type="text/javascript" src="/static/libs/underscore-1.6.0/underscore-min.js"></script>
-  <script type="text/javascript" src="/static/libs/backbone-1.1.2/backbone-min.js"></script>
-  <script type="text/javascript" src="/static/libs/bootstrap-3.1.1/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="/static/libs/jquery-shuffle/jquery-shuffle.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/libs/jquery/jquery-1.11.0.min.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/libs/underscore-1.6.0/underscore-min.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/libs/backbone-1.1.2/backbone-min.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/libs/bootstrap-3.1.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/libs/jquery-shuffle/jquery-shuffle.js"></script>
 
   <!-- dynamic data here -->
     <script>
@@ -136,7 +136,7 @@
                   <% if (candidate.media_url.length > 0) { %>
                     <img src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
                   <% } else { %>
-                    <img src="/static/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+                    <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
                   <% } %>
                 </div>
               </div>
@@ -418,5 +418,5 @@
   </script>
 
   <!-- real ours js code -->
-  <script type="text/javascript" src="/static/js/base.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/js/base.js"></script>
 </body>

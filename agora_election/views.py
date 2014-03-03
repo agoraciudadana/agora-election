@@ -360,4 +360,5 @@ def get_index():
     data_str = Markup(json.dumps(
         current_app.config.get('AGORA_ELECTION_DATA', {})
     ))
-    return render_template('index.html', data=data_str)
+    static_path = current_app.config.get('STATIC_PATH', '/static')
+    return render_template('index.html', data=data_str, static_path=static_path)

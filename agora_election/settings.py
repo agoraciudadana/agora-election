@@ -146,6 +146,8 @@ SMS_SENDER_ID = ''
 #MAIL_PASSWORD = None
 MAIL_DEFAULT_SENDER = "agora@example.com"
 
+STATIC_PATH = "/static"
+
 if os.path.isfile(os.path.join(ROOT_PATH, "custom_settings.py")):
     from custom_settings import *
 else:
