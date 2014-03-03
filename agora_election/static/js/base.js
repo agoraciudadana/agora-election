@@ -39,7 +39,7 @@
         if (!/^\+34/.test(tlf)) {
             tlf = "+34" + tlf;
         }
-        var regExp = new RegExp(app_data.tlf_no_rx);
+        var regExp = new RegExp(app_data.election.tlf_no_rx);
         if (!regExp.test(tlf)) {
             return null;
         }
@@ -114,7 +114,9 @@
         },
 
         render: function() {
-            app_data.candidates = $.shuffle(app_data.candidates);
+            if (app_data.election.tally_released_at_date == null) {
+                app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
+            }
             this.$el.html(this.template(app_data));
             this.delegateEvents();
             return this;
@@ -128,7 +130,7 @@
     AE.shortDetails = function(description)  {
         var ret = description.substr(0, 140);
         return ret.replace(/(<\/p>|<p>|<p|p>|<\/|>|<)/g, "") + " ..";
-    }
+    };
 
     /**
      * Return the dict item with the given name from an url list of a candidate,
@@ -138,6 +140,19 @@
         for (var i = 0; i < urls.length; i++) {
             if (urls[i].title.indexOf(title) != -1) {
                 return urls[i];
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Return the candidate by name.
+     */
+    AE.findCandidateByName = function(name)  {
+        for (var i = 0; i < app_data.election.questions[0].answers.length; i++) {
+            var candidate = app_data.election.questions[0].answers;
+            if (candidate.value == name) {
+                return candidate;
             }
         }
         return null;
@@ -269,8 +284,6 @@
                 type: 'POST',
             })
             .done(function(data) {
-                console.log("data = ");
-                console.log(data);
                 self.sendingFlag = false;
                 app.router.navigate("verify-sms", {trigger: true});
             })
@@ -422,7 +435,6 @@
                 type: 'POST',
             })
             .done(function(data) {
-                console.log("data = ");
                 try {
                     data = JSON.parse(data);
                 } catch(e) {
@@ -432,7 +444,7 @@
                     'para que podamos reproducir y arreglar el problema.', false);
                     return;
                 }
-                var url = app_data.election_url + "?message=" + encodeURIComponent(data.message) + "&sha1_hmac=" + encodeURIComponent(data.sha1_hmac);
+                var url = app_data.election.url + "/vote?message=" + encodeURIComponent(data.message) + "&sha1_hmac=" + encodeURIComponent(data.sha1_hmac);
                 document.location.href=url;
             })
             .fail(this.processError);
@@ -647,7 +659,6 @@
                 type: 'POST',
             })
             .done(function(data) {
-                console.log("data = ");
                 console.log(data);
                 self.sendingFlag = false;
                 app.router.navigate("mail-sent", {trigger: true});

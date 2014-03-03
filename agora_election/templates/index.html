@@ -35,7 +35,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>
@@ -43,7 +43,7 @@
         <section class="feature-block cf">
           <div class="shadow-wrapper container-fluid"><div class="row">
             <div class="campaign-excerpt col-xs-12 col-sm-7">
-              <p><%- short_description %></p>
+              <p><%- election.description %></p>
               <a href="#identify" class="btn-vote btn-dark">Vota</a>
             </div>
             <div class="extra-info col-xs-12 col-sm-5">
@@ -52,7 +52,7 @@
                 <i>Comienzo votación</i>
               </div>
               <div class="featured-item">
-                <strong><%- candidates.length %></strong>
+                <strong><%- election.questions[0].answers.length %></strong>
                 <i>Candidatos</i>
               </div>
               <div class="featured-item">
@@ -60,7 +60,7 @@
                 <i>Fin votación</i>
               </div>
               <div class="featured-item">
-                <strong><%- num_seats %></strong>
+                <strong><%- election.questions[0].num_seats %></strong>
                 <i>Ganadores</i>
               </div>
               <div class="cf"></div>
@@ -87,49 +87,56 @@
 
         <section class="content-wrapper cr">
           <div class="candidates-header cf">
-            <h3>Candidaturas</h3>
-            <h4>En orden aleatorio</h4>
+            <% if (election.tally_released_at_date == null) { %>
+              <h3>Candidaturas</h3>
+              <h4>En orden aleatorio</h4>
+            <% } else { %>
+              <h3>Lista de ganadores</h3>
+              <h4>En orden</h4>
+            <% } %>
           </div>
           <div class="candidates-wrapper container-fluid">
-            <% for(var i = 0; i< candidates.length; i++) { %>
+            <% for(var i = 0; i< election.questions[0].answers.length; i++) { %>
               <% if (i > 1 && i % 2 == 0) { %>
                 </div>
                 <div class="candidates-wrapper container-fluid">
-              <% } %>
+              <% }
+                 var candidate = election.questions[0].answers[i];
+              %>
               <div class="col-xs-12 col-sm-6 candidate-item">
                 <div class="cf">
                   <div class="description">
-                    <h3><%- candidates[i].value %></h3>
-                    <p class="short-description"><%- AE.shortDetails(candidates[i].details) %></p>
+                    <h3><%- candidate.value %></h3>
+                    <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
                     <div class="container-fluid info-points">
                       <div class="col-xs-7">
-                        <a href="#" alt="Presentación y motivos" class="details" data-details="<%- candidates[i].details %>">
+                        <a href="#" alt="Presentación y motivos" class="details" data-details="<%- candidate.details %>">
                           Presentación y motivos
                         </a>
-                        <% if (AE.findUrlByTitle(candidates[i].urls, "Web") != null) { %>
-                          <a href="<%- AE.findUrlByTitle(candidates[i].urls, "Web").url %>" target="_blank" alt="Web">
+                        <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
+                          <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
                             Web
                           </a>
                         <% } %>
                       </div>
                       <div class="col-xs-5">
-                        <% if (AE.findUrlByTitle(candidates[i].urls, "@") != null) { %>
-                          <a href="<%- AE.findUrlByTitle(candidates[i].urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidates[i].urls, "@").title %>">
+                        <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
+                          <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
                             Twitter
                           </a>
                         <% } %>
-                        <% if (AE.findUrlByTitle(candidates[i].urls, "Facebook") != null) { %>
-                          <a href="<%- AE.findUrlByTitle(candidates[i].urls, "Facebook").url %>" target="_blank" alt="Facebook">
+                        <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
+                          <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
                             Facebook
                           </a>
                         <% } %>
                       </div>
                     </div>
                   </div>
-                  <% if (candidates[i].media_url.length > 0) { %>
-                    <img src="<%- candidates[i].media_url %>" alt="<%- candidates[i].value %>" />
+                  <% if (candidate.media_url.length > 0) { %>
+                    <img src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
                   <% } else { %>
-                    <img src="/static/themes/current/img/anon_icon.png" alt="<%- candidates[i].value %>" />
+                    <img src="/static/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
                   <% } %>
                 </div>
               </div>
@@ -152,7 +159,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>
@@ -230,7 +237,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>
@@ -274,7 +281,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>
@@ -307,7 +314,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>
@@ -341,7 +348,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>
@@ -392,7 +399,7 @@
         </a>
 
         <div class="headlines col-md-6">
-          <h2><%- title %></h2>
+          <h2><%- election.pretty_name %></h2>
           <h3><%- subtitle %></h3>
         </div>
       </header>

@@ -357,5 +357,7 @@ def post_contact():
 
 @index.route('/', methods=['GET'])
 def get_index():
-    data = current_app.config.get("AGORA_ELECTION_DATA", dict())
-    return render_template('index.html', data=Markup(json.dumps(data)))
+    data_str = Markup(json.dumps(
+        current_app.config.get('AGORA_ELECTION_DATA', {})
+    ))
+    return render_template('index.html', data=data_str)

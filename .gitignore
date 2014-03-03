@@ -1,4 +1,5 @@
 *.pyc
 custom_settings.py
 *.sqlite
+*.json
 __pycache__
