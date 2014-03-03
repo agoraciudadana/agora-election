@@ -41,6 +41,9 @@ from tasks import *
 from models import *
 from views import api, index
 
+app_flask.register_blueprint(api, url_prefix='/api/v1')
+app_flask.register_blueprint(index, url_prefix='/')
+
 def config():
     logging.basicConfig(level=logging.DEBUG)
     app_flask.config.from_object("settings")
@@ -306,9 +309,6 @@ def main():
         db.session.add(cl)
         db.session.commit()
         return
-
-    app_flask.register_blueprint(api, url_prefix='/api/v1')
-    app_flask.register_blueprint(index, url_prefix='/')
 
     logging.info("using provider = %s" % app_flask.config.get(
         'SMS_PROVIDER', None))
