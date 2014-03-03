@@ -53,7 +53,7 @@ AGORA_SHARED_SECRET_KEY = "<shared key>"
 ########### data
 
 def get_json(fname):
-    with open(fname, 'r') as f:
+    with open(fname, 'r', encoding="utf-8") as f:
         return json.loads(f.read())
 
 AGORA_ELECTION_DATA = dict(
