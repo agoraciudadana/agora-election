@@ -39,7 +39,7 @@
         if (!/^\+34/.test(tlf)) {
             tlf = "+34" + tlf;
         }
-        var regExp = new RegExp(app_data.election.tlf_no_rx);
+        var regExp = new RegExp(app_data.tlf_no_rx);
         if (!regExp.test(tlf)) {
             return null;
         }
