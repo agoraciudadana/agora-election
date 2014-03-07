@@ -346,9 +346,11 @@ def post_contact():
     msg = MailMessage(subject=subject,
                       sender=current_app.config.get('MAIL_DEFAULT_SENDER', []),
                       recipients=recipients)
-    msg.body = gettext("Message from %(name)s <%(email)s> (tlf %(tlf)s): \n%(body)s",
+    msg.body = gettext("Message from %(name)s <%(email)s> (tlf %(tlf)s, ip: "
+                       "%(ip)s): \n%(body)s",
                        name=data['name'],
                        tlf=data['tlf'],
+                       ip=request.remote_addr,
                        email=data['email'],
                        body=data['body'])
     app_mail.send(msg)
