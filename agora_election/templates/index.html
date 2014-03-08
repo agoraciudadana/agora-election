@@ -80,7 +80,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#security-center">
+                  <a href="#verify-vote">
                     Centro de seguridad
                   </a>
                 </li>
@@ -448,6 +448,90 @@
     <div class="cf"></div>
     <h3>Presentación y motivos</h3>
     <p><%= details %></p>
+  </script>
+
+  <script type="text/underscore-template" id="template-security-center-view">
+    <div class="container">
+      <header id="header" class="cf">
+        <a class="home-link" href="#" alt="Portada">
+        </a>
+
+        <div class="headlines col-md-6">
+          <h2><%- election.pretty_name %></h2>
+          <h3><%- subtitle %></h3>
+        </div>
+      </header>
+      <div id="main" class="main cr" role="main">
+        <section class="content-wrapper cf row-fluid">
+          <div class="col-xs-12 col-sm-12">
+            <h2 class="section-title">Centro de Seguridad</h2>
+          </div>
+
+          <ul class="nav nav-tabs" id="verify-tabs">
+            <li class="active"><a href="#verify-vote" data-toggle="tab">
+              Verifica tu voto
+            </a></li>
+            <li><a href="#verify-tally" data-toggle="tab">
+              Verifica el recuento
+            </a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="verify-vote">
+              <form id="verify-vote-form" role="form" class="col-xs-12 col-sm-7">
+                <div class="form-group">
+                  <label for="tracker">Tracker del voto</label>
+                  <input type="text" class="form-control" id="tracker" placeholder="">
+                  <p class="help-block">El tracker de tu voto, por ejemplo 78a319dbd699c5d6ff08ca08990b395e593bcb8282a7660417a50d0ee470503f</p>
+                </div>
+                <div id="error-message"></div>
+                <button id="verify-action" class="btn btn-light btn-block">
+                  Comprobar mi voto
+                </button>
+                <div id="verify-result" class="hidden">
+                  <div class="tab-pane">
+                    <h2>Resultado</h2>
+                    <p>¡Enhorabuena! El voto con el tracker <strong id="tracker-id"></strong> se ha contabilizado correctamente. Si quieres ver los detalles técnicos del voto, <a data-toggle="collapse" data-parent="#verify-tally" href="#vote-details">pincha aquí</a></p>
+                    <div class="collapse console-line" id="vote-details">
+                    </div>
+                  </div>
+                </div>
+              </form>
+              <div class="section-header col-xs-12 col-sm-5">
+                <p>Cuando emites tu voto, te aparece el tracker de tu voto para que puedas seguirle el rastro sin revelar el secreto del voto. Aquí puedes introducirlo y ver que efectivamente tu voto fue emitido y recogido correctamente. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
+              </div>
+            </div>
+            <div class="tab-pane" id="verify-tally">
+              <% if (election.tally_released_at_date == null) { %>
+                <p>En cuanto se cierre la votación, se realice el recuento y se publiquen los resultados, cualquiera podrá verificar los resultados de la votación siguiendo unos sencillos pasos que aquí se detallarán.</p>
+              <% } else { %>
+                <p>Para verificar la votación, sigue estos pasos:</p>
+                <ol>
+                    <li>
+                        <p>Descarga <a target="_blank" href="https://congresotransparente.com/static/agora-verifier">agora-verifier</a> (necesitarás Linux x64 bits con python 2.7 y Java 7)</p>
+                    </li>
+                    <li>
+                        <p>Descarga <a target="_blank" href="<%- election.base_url %>/media/elections/<%- election.id %>/tally.tar.gz">el recuento de la votación</a></p>
+                    </li>
+                    <li>
+                        <p>Indica el directorio donde hayas descargado ambos archivos y ejecuta el siguiente comando para verificar el recuento:</p>
+                        <div class="console-line">
+                        sh agora-verifier tally.tar.gz</h2>
+                        </div>
+                    </li>
+                </ol>
+                <p>Para verificar que se haya contado tu voto, ejecuta:</p>
+                <div class="console-line">sh agora-verifier tally.tar.gz &lt;tracker-id&gt;</div>
+              </div>
+            <% } %>
+          </div>
+        </section>
+
+        <section class="footer cf">
+          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
+        </section>
+      </div>
+    </div>
   </script>
 
   <!-- real ours js code -->

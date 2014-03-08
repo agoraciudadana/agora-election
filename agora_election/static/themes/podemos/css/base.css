@@ -383,6 +383,40 @@ form #error-message {
     color: rgb(169, 68, 66);
 }
 
+/* security center */
+
+#verify-tabs, #verify-vote-form {
+    margin-bottom: 2em;
+}
+
+#verify-result {
+    margin-top: 2em;
+    color: rgb(115, 115, 115);
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    font-weight: 300;
+    font-size: 1.2em;
+}
+
+.console-line {
+    overflow-y: auto;
+    max-width: 100%;
+    font-weight: 300;
+    font-family: 'Oswald','Helvetica Neue',Helvetica,sans-serif;
+    background-color: rgb(229, 229, 229);
+    padding: 1em;
+    font-size: 1.3em;
+    border-radius: 0.2rem;
+    word-wrap: break-word;
+}
+
+#verify-tally {
+    margin-top: 2em;
+    color: rgb(115, 115, 115);
+    font-family: 'Merriweather',Georgia,'Times New Roman', Times, serif;
+    font-weight: 300;
+    font-size: 1em;
+}
+
 /* Small devices (tablets, 768px and up) */
 @media (min-width: 768px) {
     #header, .content-wrapper {

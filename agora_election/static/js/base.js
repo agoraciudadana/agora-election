@@ -54,6 +54,10 @@
     var main = function() {
         app.modal_view = new AE.ModalDialogView();
 
+        // process app_data
+        var rx = /^(https?:\/\/[^/]+)\/[^/]+\/[^/]+\/election\//
+        app_data.election.base_url = rx.exec(app_data.election.url)[1];
+
         // Initiate the router
         app.router = new AE.Router();
 
@@ -73,7 +77,10 @@
             "faq": "faq",
             "authorities": "authorities",
             "contact": "contact",
-            'mail-sent': 'mail_sent'
+            'mail-sent': 'mail_sent',
+            'verify-vote': 'security_center',
+            'verify-tally': 'security_center',
+
         },
 
         home: function() {
@@ -103,6 +110,14 @@
 
         mail_sent: function() {
             app.current_view = new AE.MailSentView();
+        },
+
+        security_center: function() {
+            if (!app.current_view ||
+                app.current_view.class_name != "security-center")
+            {
+                app.current_view = new AE.SecurityCenterView();
+            }
         }
     });
 
@@ -731,6 +746,136 @@
             this.delegateEvents();
             this.$el.find("#modal-dialog").modal('show');
             return this;
+        }
+    });
+
+    /**
+     * Security Center view
+     */
+    AE.SecurityCenterView = Backbone.View.extend({
+        el: "#renderall",
+        class_name: "security-center",
+
+        events: {
+            'click #verify-action': 'processForm'
+        },
+
+        initialize: function() {
+            this.template = _.template($("#template-security-center-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            var hash = window.location.hash;
+            $('#verify-tabs a[href="' + hash + '"]').tab('show');
+            this.delegateEvents();
+            return this;
+        },
+
+        /**
+         * Used in setError and processForm to detect errors
+         */
+        errorFlag: false,
+
+        /**
+         * detects when we are sending a petition
+         */
+        sendingFlag: false,
+
+        /**
+         *  Help function to set the
+         */
+        setError: function(selector, text) {
+            this.errorFlag = true;
+            $(selector).parent().find(".help-block").html(text);
+            $(selector).closest(".form-group").addClass("has-error");
+        },
+
+        showErrorMessage: function(message, allow_try_again) {
+            $("#error-message").html(message);
+            if (allow_try_again) {
+                $("#verify-action").removeAttr("disabled");
+            }
+        },
+
+        /**
+         * Locate the tracker id and see if it exists
+         */
+        processForm: function() {
+            if (this.sendingFlag) {
+                return;
+            }
+            // reset errors
+            this.errorFlag = false;
+            $("#verify-action").attr("disabled", "disabled");
+            $("#error-message").empty();
+            $("#verify-result").addClass("hidden");
+            $(".form-group.has-error .help-block").each(function() {
+                $(this).empty();
+            });
+            $(".form-group").removeClass("has-error");
+
+            var tracker = $("#tracker").val().toLowerCase();
+            if (!/[0-9a-f]{64}/.test(tracker)) {
+                this.setError("#tracker", "El tracker que has introducido " +
+                              "es incorrecto");
+            }
+
+            if (this.errorFlag) {
+                $("#verify-action").removeAttr("disabled");
+                return;
+            }
+
+            $("#tracker-id").html(tracker);
+
+            this.sendingFlag = true;
+
+            var e_id = app_data.election.id;
+            var base_url = app_data.election.base_url;
+            var url = base_url + "/api/v1/election/" + e_id +
+                      "/all_votes/?limit=1&offset=0&" +
+                      "username=" + encodeURIComponent(tracker);
+
+            var self = this;
+            var jqxhr = $.ajax(url, {
+                contentType: 'application/json'
+            }).done(this.processSuccess)
+            .fail(this.processError);
+        },
+
+        processSuccess: function(data) {
+            app.current_view.sendingFlag = false;
+            $("#verify-action").removeAttr("disabled");
+            try {
+                var ret = JSON.parse(data);
+            } catch(e) {
+                app.current_view.showErrorMessage('Ha ocurrido un error interno ' +
+                'enviando el formulario. Por favor, ponte en <a ' +
+                'href="#contact">contacto con nosotros</a> explicando ' +
+                'en detalle los pasos que seguiste para que podamos ' +
+                'reproducir y arreglar el problema.', true);
+                return;
+            }
+            if (ret.total_count == 0) {
+                app.current_view.showErrorMessage('No hemos encontrado el tracker ' +
+                'que has introducido ¿seguro que es correcto?', true);
+                return;
+            }
+            var vote = JSON.stringify(ret.objects[0].public_data);
+            $("#vote-details").html(vote);
+            $("#verify-result").removeClass("hidden");
+        },
+
+        processError: function(jqXHR, textStatus) {
+            self.sendingFlag = false;
+            $("#verify-action").removeAttr("disabled");
+            self.showErrorMessage('Ha ocurrido un error interno ' +
+            'enviando el formulario. Por favor, ponte en <a ' +
+            'href="#contact">contacto con nosotros</a> explicando ' +
+            'en detalle los pasos que seguiste para que podamos ' +
+            'reproducir y arreglar el problema.', true);
+            return;
         }
     });
 
