@@ -847,22 +847,12 @@
         processSuccess: function(data) {
             app.current_view.sendingFlag = false;
             $("#verify-action").removeAttr("disabled");
-            try {
-                var ret = JSON.parse(data);
-            } catch(e) {
-                app.current_view.showErrorMessage('Ha ocurrido un error interno ' +
-                'enviando el formulario. Por favor, ponte en <a ' +
-                'href="#contact">contacto con nosotros</a> explicando ' +
-                'en detalle los pasos que seguiste para que podamos ' +
-                'reproducir y arreglar el problema.', true);
-                return;
-            }
-            if (ret.total_count == 0) {
+            if (data.objects.length == 0) {
                 app.current_view.showErrorMessage('No hemos encontrado el tracker ' +
                 'que has introducido ¿seguro que es correcto?', true);
                 return;
             }
-            var vote = JSON.stringify(ret.objects[0].public_data);
+            var vote = JSON.stringify(data.objects[0].public_data);
             $("#vote-details").html(vote);
             $("#verify-result").removeClass("hidden");
         },
