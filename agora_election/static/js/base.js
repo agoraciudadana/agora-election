@@ -1,4 +1,4 @@
-/*
+    /*
     This file is part of agora-election.
     Copyright (C) 2014 Eduardo Robles Elvira <edulix AT agoravoting DOT com>
 
@@ -21,6 +21,7 @@
     var AE = this.AE = {}; // AE  means "Agora Election"
     var app = this.app = {};
     app.current_view = null;
+    app.modal_dialog = null;
 
     var Checker = {};
     Checker.email = function(v) {
@@ -51,6 +52,8 @@
      *  Main function, creates the router and starts the routing processing
      */
     var main = function() {
+        app.modal_view = new AE.ModalDialogView();
+
         // Initiate the router
         app.router = new AE.Router();
 
@@ -109,8 +112,13 @@
     AE.HomeView = Backbone.View.extend({
         el: "#renderall",
 
+        events: {
+            'click a.details': 'showDetails',
+        },
+
         initialize: function() {
             this.template = _.template($("#template-home-view").html());
+            this.tmplCandModalBody = _.template($("#template-candidate-modal-body").html());
             this.render();
         },
 
@@ -121,6 +129,17 @@
             this.$el.html(this.template(app_data));
             this.delegateEvents();
             return this;
+        },
+
+        /**
+         *  shows a modal dialog with the details of the candidate option
+         */
+        showDetails: function(e) {
+            e.preventDefault();
+            var candidate = $(e.target).data('candidate');
+            var title = candidate.value;
+            var body = this.tmplCandModalBody(candidate);
+            app.modal_view.render(candidate.value, body, "");
         }
     });
 
@@ -689,6 +708,29 @@
             self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
             'formulario. Por favor, ponte en contacto con nosotros ' +
             'enviandonos un email o por twitter.', false);
+        }
+    });
+
+    /**
+     * Modal dialog, reusable
+     */
+    AE.ModalDialogView = Backbone.View.extend({
+        el: "#show-modal",
+
+        initialize: function() {
+            this.template = _.template($("#template-modal-dialog-view").html());
+        },
+
+        render: function(title, body, footer) {
+            var obj = {
+                title: title,
+                body: body,
+                footer: footer
+            };
+            this.$el.html(this.template(obj));
+            this.delegateEvents();
+            this.$el.find("#modal-dialog").modal('show');
+            return this;
         }
     });
 

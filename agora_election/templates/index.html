@@ -13,6 +13,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body role="document">
+
+  <div id="show-modal">
+  </div>
+
   <div id="renderall">
   </div>
   <!-- js dependencies -->
@@ -110,7 +114,7 @@
                     <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
                     <div class="container-fluid info-points">
                       <div class="col-xs-7">
-                        <a href="#" alt="Presentación y motivos" class="details" data-details="<%- candidate.details %>">
+                        <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
                           Presentación y motivos
                         </a>
                         <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
@@ -134,7 +138,7 @@
                     </div>
                   </div>
                   <% if (candidate.media_url.length > 0) { %>
-                    <img src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+                    <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
                   <% } else { %>
                     <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
                   <% } %>
@@ -415,6 +419,35 @@
         </section>
       </div>
     </div>
+  </script>
+
+
+  <script type="text/underscore-template" id="template-modal-dialog-view">
+    <div class="modal fade" id="modal-dialog" tabindex="-1" role="dialog" aria-labelledby="modal-dialog-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="modal-dialog-label"><%- title %></h4>
+          </div>
+          <div class="modal-body">
+            <%= body %>
+          </div>
+          <% if (footer.length) { %>
+            <div class="modal-footer">
+              <%= footer %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-candidate-modal-body">
+    <img class="cand-img" src="<%- media_url %>" alt="<%- value %>" />
+    <div class="cf"></div>
+    <h3>Presentación y motivos</h3>
+    <p><%= details %></p>
   </script>
 
   <!-- real ours js code -->
