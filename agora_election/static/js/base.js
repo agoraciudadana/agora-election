@@ -868,9 +868,9 @@
         },
 
         processError: function(jqXHR, textStatus) {
-            self.sendingFlag = false;
+            app.current_view.sendingFlag = false;
             $("#verify-action").removeAttr("disabled");
-            self.showErrorMessage('Ha ocurrido un error interno ' +
+            app.current_view.showErrorMessage('Ha ocurrido un error interno ' +
             'enviando el formulario. Por favor, ponte en <a ' +
             'href="#contact">contacto con nosotros</a> explicando ' +
             'en detalle los pasos que seguiste para que podamos ' +
