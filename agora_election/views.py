@@ -359,8 +359,6 @@ def post_contact():
 
 @index.route('/', methods=['GET'])
 def get_index():
-    data_str = Markup(json.dumps(
-        current_app.config.get('AGORA_ELECTION_DATA', {})
-    ))
+    data_str = current_app.config.get('AGORA_ELECTION_DATA_STR', '')
     static_path = current_app.config.get('STATIC_PATH', '/static')
     return render_template('index.html', data=data_str, static_path=static_path)

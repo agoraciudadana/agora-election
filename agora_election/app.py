@@ -20,22 +20,34 @@
 import os
 import logging
 import argparse
+import json
 
 from prettytable import PrettyTable
 from celery import Celery
 
+from jinja2 import Markup
+from sqlalchemy import or_
+
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
 from flask.ext.babel import Babel
 from flask.ext.mail import Mail
 
+class App(Flask):
+    db = None
+    babel = None
+    mail = None
+    celery = None
+
+    def __init__(self, *args, **kwargs):
+        super(App, self).__init__(*args, **kwargs)
+
 # bootstrap our app
-app_flask = Flask(__name__)
-babel = Babel(app_flask)
-db = SQLAlchemy(app_flask)
-app_mail = Mail(app_flask)
-app = Celery("app")
+app_flask = App(__name__)
+babel = app_flask.babel = Babel(app_flask)
+db = app_flask.db = SQLAlchemy(app_flask)
+app_mail = app_flask.mail = Mail(app_flask)
+app = app_flask.celery = Celery("app")
 
 from tasks import *
 from models import *
@@ -57,9 +69,15 @@ def config():
                       "= %s" % os.environ['AGORA_ELECTION_SETTINGS'])
         app_flask.config.from_envvar('AGORA_ELECTION_SETTINGS', silent=False)
 
+    # an optimization
+    app_flask.config['AGORA_ELECTION_DATA_STR'] = Markup(json.dumps(
+        app_flask.config.get('AGORA_ELECTION_DATA', {})))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--createdb", help="create the database",
+                        action="store_true")
+    parser.add_argument("--resetdb", help="reset the database",
                         action="store_true")
     parser.add_argument("-c", "--console", help="agora-election command line",
                         action="store_true")
@@ -93,6 +111,16 @@ def main():
     if pargs.createdb:
         logging.info("creating the database: %s" % app_flask.config.get(
             'SQLALCHEMY_DATABASE_URI', ''))
+        db.create_all()
+        return
+    if pargs.resetdb:
+        logging.info("reset the database: %s" % app_flask.config.get(
+            'SQLALCHEMY_DATABASE_URI', ''))
+        d = input("resetting the whole agora-election database. write YES to confirm: ")
+        if d != "YES":
+            print("You didn't confirm, NOT reseting the database..")
+            exit(1)
+        db.drop_all()
         db.create_all()
         return
     elif pargs.console:

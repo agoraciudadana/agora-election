@@ -488,7 +488,7 @@
         showErrorMessage: function(message, allow_try_again) {
             $("#error-message").html(message);
             if (allow_try_again) {
-                $("#identify-action").removeAttr("disabled");
+                $("#verify-action").removeAttr("disabled");
             }
         },
 
