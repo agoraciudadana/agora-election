@@ -82,14 +82,13 @@ def post_register():
 
     # do a deeper input check: check that the ip is not blacklisted, or that
     # the tlf has already voted..
-    set_serializable()
     check_status = check_registration_pipeline(request.remote_addr, data)
     if  check_status is not True:
-        unset_serializable()
         return check_status
 
     # disable older registration attempts for this tlf
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    set_serializable()
     old_voters = db.session.query(Voter)\
         .filter(Voter.election_id == curr_eid,
                 Voter.tlf == data["tlf"],
@@ -140,6 +139,7 @@ def set_serializable():
     # if using postgres, then we check concurrency
     if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
         import psycopg2
+        db.session.begin()
         conn = db.session.bind.engine.connect().connection.connection
         conn.set_isolation_level(
             psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
