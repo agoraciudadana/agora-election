@@ -82,13 +82,13 @@ def post_register():
 
     # do a deeper input check: check that the ip is not blacklisted, or that
     # the tlf has already voted..
+    set_serializable()
     check_status = check_registration_pipeline(request.remote_addr, data)
     if  check_status is not True:
         return check_status
 
     # disable older registration attempts for this tlf
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
-    set_serializable()
     old_voters = db.session.query(Voter)\
         .filter(Voter.election_id == curr_eid,
                 Voter.tlf == data["tlf"],
