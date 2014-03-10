@@ -139,7 +139,8 @@ def set_serializable():
     # if using postgres, then we check concurrency
     if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
         import psycopg2
-        db.session.begin()
+        # commit to separate everything in a new transaction
+        db.session.commit()
         conn = db.session.bind.engine.connect().connection.connection
         conn.set_isolation_level(
             psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
