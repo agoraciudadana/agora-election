@@ -83,36 +83,49 @@
 
         },
 
+        removeCurrentView: function() {
+            if(app.current_view) {
+                app.current_view.remove();
+            }
+        },
+
         home: function() {
-            console.log("home!");
+            this.removeCurrentView();
             app.current_view = new AE.HomeView();
         },
 
         identify: function() {
+            this.removeCurrentView();
             app.current_view = new AE.IdentifyView();
         },
 
         verify_sms: function() {
+            this.removeCurrentView();
             app.current_view = new AE.VerifySMSView();
         },
 
         faq: function() {
+            this.removeCurrentView();
             app.current_view = new AE.FAQView();
         },
 
         authorities: function() {
+            this.removeCurrentView();
             app.current_view = new AE.AuthoritiesView();
         },
 
         contact: function() {
+            this.removeCurrentView();
             app.current_view = new AE.ContactView();
         },
 
         mail_sent: function() {
+            this.removeCurrentView();
             app.current_view = new AE.MailSentView();
         },
 
         security_center: function() {
+            this.removeCurrentView();
             if (!app.current_view ||
                 app.current_view.class_name != "security-center")
             {
