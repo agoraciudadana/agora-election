@@ -243,6 +243,7 @@
             if (this.sendingFlag) {
                 return;
             }
+            this.sendingFlag = true;
             // reset errors
             this.errorFlag = false;
             $("#identify-action").attr("disabled", "disabled");
@@ -297,11 +298,10 @@
             }
 
             if (this.errorFlag) {
+                this.sendingFlag = false;
                 $("#identify-action").removeAttr("disabled");
                 return;
             }
-
-            this.sendingFlag = true;
 
             var inputData = {
                 "first_name": first_name,
@@ -430,6 +430,7 @@
             if (this.sendingFlag) {
                 return;
             }
+            this.sendingFlag = true;
             // reset errors
             this.errorFlag = false;
             $("#verify-action").attr("disabled", "disabled");
@@ -456,6 +457,12 @@
             tlf = Checker.tlf(tlf)
             if (!tlf) {
                 this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
+            }
+
+            if (this.errorFlag) {
+                this.sendingFlag = false;
+                $("#verify-action").removeAttr("disabled");
+                return;
             }
 
             var inputData = {
@@ -630,6 +637,7 @@
             if (this.sendingFlag) {
                 return;
             }
+            this.sendingFlag = true;
             // reset errors
             this.errorFlag = false;
             $("#send-message").attr("disabled", "disabled");
@@ -674,11 +682,10 @@
             }
 
             if (this.errorFlag) {
+                this.sendingFlag = true;
                 $("#send-message").removeAttr("disabled");
                 return;
             }
-
-            this.sendingFlag = true;
 
             var inputData = {
                 "name": name,
@@ -806,6 +813,7 @@
             if (this.sendingFlag) {
                 return;
             }
+            this.sendingFlag = true;
             // reset errors
             this.errorFlag = false;
             $("#verify-action").attr("disabled", "disabled");
@@ -824,12 +832,11 @@
 
             if (this.errorFlag) {
                 $("#verify-action").removeAttr("disabled");
+                this.sendingFlag = false;
                 return;
             }
 
             $("#tracker-id").html(tracker);
-
-            this.sendingFlag = true;
 
             var e_id = app_data.election.id;
             var base_url = app_data.election.base_url;

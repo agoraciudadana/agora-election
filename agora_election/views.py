@@ -82,8 +82,10 @@ def post_register():
 
     # do a deeper input check: check that the ip is not blacklisted, or that
     # the tlf has already voted..
+    set_serializable()
     check_status = check_registration_pipeline(request.remote_addr, data)
     if  check_status is not True:
+        unset_serializable()
         return check_status
 
     # disable older registration attempts for this tlf
@@ -125,6 +127,7 @@ def post_register():
     db.session.add(voter)
     db.session.add(msg)
     db.session.commit()
+    unset_serializable()
 
     send_sms.apply_async(kwargs=dict(msg_id=msg.id),
         countdown=current_app.config.get('SMS_DELAY', 1),
