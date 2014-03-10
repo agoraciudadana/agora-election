@@ -86,6 +86,7 @@
         removeCurrentView: function() {
             if(app.current_view) {
                 app.current_view.remove();
+                $("#renderall-wrapper").html('<div id="renderall"></div>');
             }
         },
 
