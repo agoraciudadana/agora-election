@@ -129,7 +129,7 @@ class Message(db.Model):
 
     content = db.Column(db.String(160))
 
-    token = db.Column(db.String(40))
+    token = db.Column(db.String(256))
 
     authenticated = db.Column(db.Boolean, default=False)
 

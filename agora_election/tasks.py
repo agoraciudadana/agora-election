@@ -24,7 +24,7 @@ from app import app, app_flask
 from sms import SMSProvider
 
 @app.task
-def send_sms(msg_id):
+def send_sms(msg_id, token):
     '''
     Sends an sms with a given content to the receiver
     '''
@@ -50,7 +50,7 @@ def send_sms(msg_id):
     server_name = app_flask.config.get("SERVER_NAME", "")
     content = gettext(
         app_flask.config.get("SMS_MESSAGE", ""),
-        token=msg.token, server_name=server_name)
+        token=token, server_name=server_name)
 
     # update status
     msg.status = Message.STATUS_SENT

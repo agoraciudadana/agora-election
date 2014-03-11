@@ -26,7 +26,7 @@ from jinja2 import Markup
 
 from checks import *
 from app import db, app_mail
-from crypto import constant_time_compare, salted_hmac, get_random_string
+from crypto import constant_time_compare, salted_hmac, get_random_string, hash_token
 
 api = Blueprint('api', __name__)
 index = Blueprint('index', __name__)
@@ -99,11 +99,12 @@ def post_register():
 
     # create the message to be sent
     token = token_generator()
+    token_hash = hash_token(token)
     msg = Message(
         tlf=data["tlf"],
         ip=request.remote_addr,
         lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
-        token=token,
+        token=token_hash,
         status=Message.STATUS_QUEUED,
     )
 
@@ -128,10 +129,10 @@ def post_register():
     db.session.commit()
     unset_serializable()
 
-    send_sms.apply_async(kwargs=dict(msg_id=msg.id),
+
+    send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=token),
         countdown=current_app.config.get('SMS_DELAY', 1),
         expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
-
 
     return make_response("", 200)
 
@@ -211,8 +212,12 @@ def post_sms_auth():
         return error("Voter provided invalid token, please try a new one",
                      error_codename="need_new_token")
 
+
+    token = data["token"].upper()
+    token_hash = hash_token(token)
+
     # check token
-    if not constant_time_compare(data["token"].upper(), voter.message.token):
+    if not constant_time_compare(token_hash, voter.message.token):
         voter.token_guesses += 1
         voter.modified = datetime.utcnow()
         db.session.add(voter)

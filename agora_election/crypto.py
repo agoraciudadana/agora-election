@@ -133,3 +133,15 @@ def constant_time_compare(val1, val2):
     for x, y in zip(val1, val2):
         result |= x ^ y
     return result == 0
+
+def hash_token(token):
+    """
+    sha-512
+    """
+    import hashlib
+
+    token_utf8 = token.encode('utf-8')
+    m = hashlib.sha512()
+    m.update(token_utf8)
+
+    return m.hexdigest()
