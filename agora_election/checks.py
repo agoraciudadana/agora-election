@@ -33,6 +33,8 @@ EMAIL_RX = re.compile(
     r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)$)'  # domain
     r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)  # literal form, ipv4 address (SMTP 4.1.3)
 
+DNI_RX = re.compile("[0-9]{8}[A-Za-z]{1}", re.IGNORECASE)
+
 def error(message="", status=400, field=None, error_codename=None):
     '''
     Returns an error message
@@ -85,6 +87,24 @@ def email_constraint(val):
         return False
     return EMAIL_RX.match(val)
 
+def dni_constraint(val):
+    '''
+    check that the input is a valid dni
+    '''
+    print("dni constraint on %s" % val)
+    if not isinstance(val, str):
+        return False
+    if not DNI_RX.match(val):
+        return False
+
+    mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
+    digits = val[0:8]
+    letter = val[8].upper()
+
+    expected = mod_letters[int(digits) % 23]
+    print("dni constraint %s %s" % (letter, expected))
+    return letter == expected
+
 def int_constraint(val, min_val=None, max_val=None):
     '''
     Checks that the value is an integer with some optional constraints.
@@ -114,6 +134,27 @@ def check_has_not_voted(ip_addr, data):
     if voter is not None:
         return error("Voter already voted", field="tlf",
                      error_codename="already_voted")
+    return RET_PIPE_CONTINUE
+
+
+def check_dni_has_not_voted(ip_addr, data):
+    '''
+    check that dni should have not voted
+    '''
+    from app import db
+    from models import Voter
+
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+
+    voter = db.session.query(Voter)\
+        .filter(Voter.election_id == curr_eid,
+                Voter.dni == data["dni"].upper(),
+                Voter.status == Voter.STATUS_VOTED,
+                Voter.is_active == True).first()
+    if voter is not None:
+        return error("Voter already voted", field="dni",
+                     error_codename="already_voted")
+
     return RET_PIPE_CONTINUE
 
 def check_tlf_whitelisted(ip_addr, data):

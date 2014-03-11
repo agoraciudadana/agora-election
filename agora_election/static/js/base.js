@@ -48,6 +48,25 @@
         return tlf;
     };
 
+    Checker.dni = function(v) {
+        var regex;
+        regex = /^[0-9]{8}[A-Za-z]{1}$/;
+
+        if(!regex.test(v)) {
+            return false;
+        }
+
+        var dni = parseInt(v);
+
+        var mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
+        var digits = v.substring(0, 8);
+        var letter = v.substring(8, 9).toUpperCase();
+
+        var expected = mod_letters.charAt(dni % 23);
+
+        return letter == expected;
+    };
+
     /**
      *  Main function, creates the router and starts the routing processing
      */
@@ -270,6 +289,7 @@
             var first_name = $("#first-name").val().trim();
             var last_name = $("#last-name").val().trim();
             var email = $("#email").val().trim();
+            var dni = $("#dni").val().trim();
             var tlf = $("#tlf").val().trim();
             var postal_code = parseInt($("#postal-code").val().trim());
             var above_age = $("#above-age:checked").length == 1;
@@ -298,6 +318,10 @@
                 this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
             }
 
+            if(!Checker.dni(dni)) {
+                this.setError("#dni", "Debes introducir un DNI válido");
+            }
+
             if (!/^[0-9]+$/.test(postal_code) || postal_code < 1 || postal_code > 100000)
             {
                 this.setError("#postal-code", "Código postal inválido");
@@ -323,7 +347,8 @@
                 "email": email,
                 "tlf": app_data.tlf,
                 "postal_code": postal_code,
-                "receive_updates": mail_updates
+                "receive_updates": mail_updates,
+                "dni": dni
             };
 
             var self = this;

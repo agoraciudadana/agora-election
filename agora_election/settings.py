@@ -24,6 +24,7 @@ ALLOWED_TLF_NUMS_RX = "^\+34[67]\\d{8}$"
 # checks pipeline for sending an sms, you can modify and tune it at will
 SMS_CHECKS_PIPELINE = (
     ("checks.check_has_not_voted", None),
+    ("checks.check_dni_has_not_voted", None),
     ("checks.check_tlf_whitelisted", None),
     ("checks.check_ip_whitelisted", None),
     ("checks.check_blacklisted", None),

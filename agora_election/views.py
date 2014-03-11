@@ -75,6 +75,7 @@ def post_register():
         ['tlf', lambda x: str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
         ['receive_updates', lambda x: isinstance(x, bool)],
+        ['dni', lambda x: dni_constraint(x)],
     )
     check_status = constraints_checker(input_checks, data)
     if  check_status is not True:
@@ -122,17 +123,17 @@ def post_register():
         status=Voter.STATUS_CREATED,
         message=msg,
         is_active=True,
+        dni=data["dni"].upper(),
     )
 
     db.session.add(voter)
     db.session.add(msg)
     db.session.commit()
     unset_serializable()
-
-
     send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=token),
         countdown=current_app.config.get('SMS_DELAY', 1),
         expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
+
 
     return make_response("", 200)
 
@@ -215,7 +216,7 @@ def post_sms_auth():
 
     token = data["token"].upper()
     token_hash = hash_token(token)
-
+    print("Checking token %s %s" % (token_hash, voter.message.token))
     # check token
     if not constant_time_compare(token_hash, voter.message.token):
         voter.token_guesses += 1
