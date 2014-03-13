@@ -32,6 +32,8 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.babel import Babel
 from flask.ext.mail import Mail
+from flask.ext.captcha import Captcha
+from flask.ext.captcha.views import captcha_blueprint
 
 class App(Flask):
     db = None
@@ -48,6 +50,7 @@ babel = app_flask.babel = Babel(app_flask)
 db = app_flask.db = SQLAlchemy(app_flask)
 app_mail = app_flask.mail = Mail(app_flask)
 app = app_flask.celery = Celery("app")
+app_captcha = Captcha()
 
 from tasks import *
 from models import *
@@ -55,9 +58,13 @@ from views import api, index
 
 app_flask.register_blueprint(api, url_prefix='/api/v1')
 app_flask.register_blueprint(index, url_prefix='/')
+app_flask.register_blueprint(captcha_blueprint, url_prefix='/captcha')
 
 def config():
     logging.basicConfig(level=logging.DEBUG)
+    # load captcha defaults
+    app_flask.config.from_object("flask.ext.captcha.settings")
+
     app_flask.config.from_object("settings")
     app.config_from_object("settings")
 
@@ -72,6 +79,9 @@ def config():
     # an optimization
     app_flask.config['AGORA_ELECTION_DATA_STR'] = Markup(json.dumps(
         app_flask.config.get('AGORA_ELECTION_DATA', {})))
+
+    # config captcha
+    app_captcha.init_app(app_flask)
 
 def main():
     parser = argparse.ArgumentParser()

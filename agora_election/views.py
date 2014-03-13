@@ -21,6 +21,7 @@ import json
 from flask import Blueprint, request, make_response, render_template, url_for
 from flask.ext.mail import Message as MailMessage
 from flask.ext.babel import gettext, ngettext
+from flask.ext.captcha.models import CaptchaStore
 from flask import current_app
 from jinja2 import Markup
 
@@ -52,6 +53,8 @@ def post_register():
         "last_name": "de tal",
         "email": "email@example.com",
         "tlf": "+34666666666",
+        "captcha_key": "a7b10fa7b10fa7b10fa7b10fa7b10fa7b",
+        "captcha_text": "BEEF",
         "postal_code": 41010,
         "receive_updates": true
     }
@@ -71,6 +74,8 @@ def post_register():
         ['first_name', lambda x: str_constraint(x, 3, 60)],
         ['last_name', lambda x: str_constraint(x, 3, 100)],
         ['email', email_constraint],
+        ['captcha_key', lambda x: str_constraint(x, rx_pattern="[0-9a-z]{40}")],
+        ['captcha_text', lambda x: CaptchaStore.validate(data['captcha_key'], x.lower())],
         ['postal_code', lambda x: int_constraint(x, 1, 100000)],
         ['tlf', lambda x: str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
@@ -340,6 +345,8 @@ def post_contact():
     input_checks = (
         ['name', lambda x: str_constraint(x, 5, 160)],
         ['body', lambda x: str_constraint(x, 10, 4000)],
+        ['captcha_key', lambda x: str_constraint(x, rx_pattern="[0-9a-z]{40}")],
+        ['captcha_text', lambda x: CaptchaStore.validate(data['captcha_key'], x.lower())],
         ['email', email_constraint],
         ['tlf', lambda x: len(x) == 0 or str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],

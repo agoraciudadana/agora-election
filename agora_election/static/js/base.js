@@ -244,6 +244,7 @@
 
         render: function() {
             this.$el.html(this.template(app_data));
+            this.getCaptcha();
             this.delegateEvents();
             return this;
         },
@@ -295,11 +296,17 @@
             var above_age = $("#above-age:checked").length == 1;
             var mail_updates = $("#receive-mail-updates:checked").length == 1;
             var accept_conditions = $("#accept-conditions:checked").length == 1;
+            var captcha = $("#captcha-text").val().trim();
 
             // start checking
             if (first_name.length < 3 || first_name.length >= 60)
             {
                 this.setError("#first-name", "Obligatorio, de 3 a 60 caracteres");
+            }
+
+            if (captcha.length < 3 || captcha.length >= 60)
+            {
+                this.setError("#captcha-text", "Captcha obligatorio, de 3 a 10 caracteres");
             }
 
             if (last_name.length < 3 || last_name.length >= 100)
@@ -348,7 +355,9 @@
                 "tlf": app_data.tlf,
                 "postal_code": postal_code,
                 "receive_updates": mail_updates,
-                "dni": dni
+                "dni": dni,
+                "captcha_key": app_data.captcha_key,
+                "captcha_text": captcha.toLowerCase()
             };
 
             var self = this;
@@ -362,6 +371,25 @@
                 app.router.navigate("verify-sms", {trigger: true});
             })
             .fail(this.processError);
+        },
+
+        /**
+         * Refresh the captcha image.
+         */
+        getCaptcha: function(force_refresh) {
+            var jqxhr = $.ajax("/captcha/captcha_refresh/", {
+                contentType : 'application/json',
+                type: 'GET',
+            })
+            .done(function(data) {
+                app_data.captcha_key = data.key;
+                $("#captcha-img").attr("src", data.image_url);
+                $("#captcha-audio").attr("href", "/captcha/captcha_audio/" + data.key);
+                hashkey = data.key;
+            })
+            .fail(function() {
+                console.log("error refreshing captcha");
+            });
         },
 
         showErrorMessage: function(message, allow_try_again) {
@@ -384,7 +412,13 @@
                 'para que podamos reproducir y arreglar el problema.', false);
                 return;
             }
-            if (data.error_codename == "already_voted") {
+            if (data.error_codename == "invalid_key_constraint" &&
+                data.field == 'captcha_text') {
+                self.getCaptcha();
+                self.showErrorMessage('¡Vaya! El captcha introducido es ' +
+                    'inválido, prueba de nuevo.', true);
+                return;
+            } else if (data.error_codename == "already_voted") {
                 self.showErrorMessage('¡Vaya! Ya votaste anteriormente, no ' +
                 'puedes votar dos veces.', false);
             } else if (data.error_codename == "blacklisted") {
@@ -644,8 +678,28 @@
 
         render: function() {
             this.$el.html(this.template(app_data));
+            this.getCaptcha(false);
             this.delegateEvents();
             return this;
+        },
+
+        /**
+         * Refresh the captcha image.
+         */
+        getCaptcha: function(force_refresh) {
+            var jqxhr = $.ajax("/captcha/captcha_refresh/", {
+                contentType : 'application/json',
+                type: 'GET',
+            })
+            .done(function(data) {
+                app_data.captcha_key = data.key;
+                $("#captcha-img").attr("src", data.image_url);
+                $("#captcha-audio").attr("href", "/captcha/captcha_audio/" + data.key);
+                hashkey = data.key;
+            })
+            .fail(function() {
+                console.log("error refreshing captcha");
+            });
         },
 
         /**
@@ -690,11 +744,17 @@
             var email = $("#email").val().trim();
             var tlf = $("#tlf").val().trim();
             var text_body = $("#text-body").val().trim();
+            var captcha = $("#captcha-text").val().trim();
 
             // start checking
             if (name.length < 3 || name.length >= 60)
             {
                 this.setError("#name", "Obligatorio, de 3 a 60 caracteres");
+            }
+
+            if (captcha.length < 3 || captcha.length >= 60)
+            {
+                this.setError("#captcha-text", "Captcha obligatorio, de 3 a 10 caracteres");
             }
 
             if (email.length < 3 || email.length >= 140 ||
@@ -721,7 +781,7 @@
             }
 
             if (this.errorFlag) {
-                this.sendingFlag = true;
+                this.sendingFlag = false;
                 $("#send-message").removeAttr("disabled");
                 return;
             }
@@ -730,7 +790,9 @@
                 "name": name,
                 "email": email,
                 "tlf": tlf,
-                "body": text_body
+                "body": text_body,
+                "captcha_key": app_data.captcha_key,
+                "captcha_text": captcha.toLowerCase()
             };
 
             var self = this;
@@ -764,6 +826,13 @@
                 self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
                 'formulario. Por favor, ponte en contacto con nosotros ' +
                 'enviandonos un email o por twitter.', false);
+                return;
+            }
+            if (data.error_codename == "invalid_key_constraint" &&
+                data.field == 'captcha_text') {
+                self.getCaptcha();
+                self.showErrorMessage('¡Vaya! El captcha introducido es ' +
+                    'inválido, prueba de nuevo.', true);
                 return;
             }
             self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
