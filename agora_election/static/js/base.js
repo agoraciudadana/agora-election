@@ -244,7 +244,7 @@
 
         render: function() {
             this.$el.html(this.template(app_data));
-            this.getCaptcha();
+            this.getCaptcha(false);
             this.delegateEvents();
             return this;
         },
@@ -377,16 +377,25 @@
          * Refresh the captcha image.
          */
         getCaptcha: function(force_refresh) {
+            var done_func = function(data) {
+                app_data.captcha_key = data.key;
+                app_data.captcha_image_url = data.image_url;
+                $("#captcha-img").attr("src", data.image_url);
+                $("#captcha-audio").attr("href", "/captcha/captcha_audio/" + data.key);
+                hashkey = data.key;
+            }
+            if (app_data.captcha_key && force_refresh == false) {
+                done_func({
+                    image_url: app_data.captcha_image_url,
+                    key: app_data.captcha_key
+                });
+                return;
+            }
             var jqxhr = $.ajax("/captcha/captcha_refresh/", {
                 contentType : 'application/json',
                 type: 'GET',
             })
-            .done(function(data) {
-                app_data.captcha_key = data.key;
-                $("#captcha-img").attr("src", data.image_url);
-                $("#captcha-audio").attr("href", "/captcha/captcha_audio/" + data.key);
-                hashkey = data.key;
-            })
+            .done(done_func)
             .fail(function() {
                 console.log("error refreshing captcha");
             });
@@ -414,7 +423,7 @@
             }
             if (data.error_codename == "invalid_key_constraint" &&
                 data.field == 'captcha_text') {
-                self.getCaptcha();
+                self.getCaptcha(true);
                 self.showErrorMessage('¡Vaya! El captcha introducido es ' +
                     'inválido, prueba de nuevo.', true);
                 return;
@@ -687,16 +696,26 @@
          * Refresh the captcha image.
          */
         getCaptcha: function(force_refresh) {
+            var done_func = function(data) {
+                app_data.captcha_key = data.key;
+                app_data.captcha_image_url = data.image_url;
+                $("#captcha-img").attr("src", data.image_url);
+                $("#captcha-audio").attr("href", "/captcha/captcha_audio/" + data.key);
+                hashkey = data.key;
+            }
+            if (app_data.captcha_key && force_refresh == false) {
+                done_func({
+                    image_url: app_data.captcha_image_url,
+                    key: app_data.captcha_key
+                });
+                return;
+            }
+
             var jqxhr = $.ajax("/captcha/captcha_refresh/", {
                 contentType : 'application/json',
                 type: 'GET',
             })
-            .done(function(data) {
-                app_data.captcha_key = data.key;
-                $("#captcha-img").attr("src", data.image_url);
-                $("#captcha-audio").attr("href", "/captcha/captcha_audio/" + data.key);
-                hashkey = data.key;
-            })
+            .done(done_func)
             .fail(function() {
                 console.log("error refreshing captcha");
             });
@@ -830,7 +849,7 @@
             }
             if (data.error_codename == "invalid_key_constraint" &&
                 data.field == 'captcha_text') {
-                self.getCaptcha();
+                self.getCaptcha(true);
                 self.showErrorMessage('¡Vaya! El captcha introducido es ' +
                     'inválido, prueba de nuevo.', true);
                 return;
