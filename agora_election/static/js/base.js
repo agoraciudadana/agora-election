@@ -953,7 +953,7 @@
 
             var tracker = $("#tracker").val().toLowerCase();
             if (!/[0-9a-f]{64}/.test(tracker)) {
-                this.setError("#tracker", "El tracker que has introducido " +
+                this.setError("#tracker", "El localizador que has introducido " +
                               "es incorrecto");
             }
 
@@ -982,7 +982,7 @@
             app.current_view.sendingFlag = false;
             $("#verify-action").removeAttr("disabled");
             if (data.objects.length == 0) {
-                app.current_view.showErrorMessage('No hemos encontrado el tracker ' +
+                app.current_view.showErrorMessage('No hemos encontrado el localizador ' +
                 'que has introducido ¿seguro que es correcto?', true);
                 return;
             }
