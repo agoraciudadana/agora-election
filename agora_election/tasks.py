@@ -47,10 +47,10 @@ def send_sms(msg_id, token):
         return
 
     # forge the message using the token
-    server_name = app_flask.config.get("SERVER_NAME", "")
+    site_name = app_flask.config.get("SITE_NAME", "")
     content = gettext(
         app_flask.config.get("SMS_MESSAGE", ""),
-        token=token, server_name=server_name)
+        token=token, server_name=site_name)
 
     # update status
     msg.status = Message.STATUS_SENT
