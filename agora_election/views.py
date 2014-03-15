@@ -74,14 +74,18 @@ def post_register():
         ['first_name', lambda x: str_constraint(x, 3, 60)],
         ['last_name', lambda x: str_constraint(x, 3, 100)],
         ['email', email_constraint],
-        ['captcha_key', lambda x: str_constraint(x, rx_pattern="[0-9a-z]{40}")],
-        ['captcha_text', lambda x: CaptchaStore.validate(data['captcha_key'], x.lower())],
         ['postal_code', lambda x: int_constraint(x, 1, 100000)],
         ['tlf', lambda x: str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
         ['receive_updates', lambda x: isinstance(x, bool)],
         ['dni', lambda x: dni_constraint(x)],
     )
+
+    if current_app.config.get('REGISTER_SHOWS_CAPTCHA', None):
+        input_checks += (
+            ['captcha_key', lambda x: str_constraint(x, rx_pattern="[0-9a-z]{40}")],
+            ['captcha_text', lambda x: CaptchaStore.validate(data['captcha_key'], x.lower())],
+        )
     check_status = constraints_checker(input_checks, data)
     if  check_status is not True:
         return check_status

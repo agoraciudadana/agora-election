@@ -296,7 +296,9 @@
             var above_age = $("#above-age:checked").length == 1;
             var mail_updates = $("#receive-mail-updates:checked").length == 1;
             var accept_conditions = $("#accept-conditions:checked").length == 1;
-            var captcha = $("#captcha-text").val().trim();
+            if (app_data.register_shows_captcha) {
+                var captcha = $("#captcha-text").val().trim();
+            }
 
             // start checking
             if (first_name.length < 3 || first_name.length >= 60)
@@ -304,7 +306,8 @@
                 this.setError("#first-name", "Obligatorio, de 3 a 60 caracteres");
             }
 
-            if (captcha.length < 3 || captcha.length >= 60)
+            if (app_data.register_shows_captcha &&
+                (captcha.length < 3 || captcha.length >= 60))
             {
                 this.setError("#captcha-text", "Captcha obligatorio, de 3 a 10 caracteres");
             }
@@ -355,10 +358,12 @@
                 "tlf": app_data.tlf,
                 "postal_code": postal_code,
                 "receive_updates": mail_updates,
-                "dni": dni,
-                "captcha_key": app_data.captcha_key,
-                "captcha_text": captcha.toLowerCase()
+                "dni": dni
             };
+            if (app_data.register_shows_captcha) {
+                inputData.captcha_key = app_data.captcha_key,
+                inputData.captcha_text =  captcha.toLowerCase()
+            }
 
             var self = this;
             var jqxhr = $.ajax("/api/v1/register/", {
@@ -687,7 +692,9 @@
 
         render: function() {
             this.$el.html(this.template(app_data));
-            this.getCaptcha(false);
+            if (app_data.register_shows_captcha) {
+                this.getCaptcha(false);
+            }
             this.delegateEvents();
             return this;
         },
@@ -813,6 +820,7 @@
                 "captcha_key": app_data.captcha_key,
                 "captcha_text": captcha.toLowerCase()
             };
+
 
             var self = this;
             var jqxhr = $.ajax("/api/v1/contact/", {
