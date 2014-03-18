@@ -91,7 +91,6 @@ def dni_constraint(val):
     '''
     check that the input is a valid dni
     '''
-    print("dni constraint on %s" % val)
     if not isinstance(val, str):
         return False
     if not DNI_RX.match(val):

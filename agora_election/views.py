@@ -195,6 +195,7 @@ def post_sms_auth():
         ['tlf', lambda x: str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
         ['token', lambda x: str_constraint(x, rx_pattern="[0-9A-Z]{8}")],
+        ['dni', lambda x: dni_constraint(x)],
     )
     check_status = constraints_checker(input_checks, data)
     if  check_status is not True:
@@ -206,6 +207,7 @@ def post_sms_auth():
     voters = db.session.query(Voter)\
         .filter(Voter.election_id == curr_eid,
                 Voter.tlf == data["tlf"],
+                Voter.dni == data["dni"].upper(),
                 Voter.status == Voter.STATUS_SENT,
                 Voter.is_active == True)
     if voters.count() == 0:
@@ -225,7 +227,7 @@ def post_sms_auth():
 
     token = data["token"].upper()
     token_hash = hash_token(token)
-    print("Checking token %s %s" % (token_hash, voter.message.token))
+
     # check token
     if not constant_time_compare(token_hash, voter.message.token):
         voter.token_guesses += 1

@@ -260,6 +260,13 @@
             <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
           </div>
         <% } %>
+        <% if (!dni) { %>
+          <div class="form-group">
+            <label for="dni">DNI</label>
+            <input type="text" class="form-control" id="dni" placeholder="">
+            <p class="help-block">El DNI con letra incluida, ejemplo: 12345678A</p>
+          </div>
+        <% } %>
         <div class="form-group">
           <label for="sms-code">Código SMS</label>
           <input type="text" class="form-control" id="sms-code" placeholder="">

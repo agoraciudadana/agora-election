@@ -329,6 +329,7 @@
                 this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
             }
 
+            app_data.dni = dni;
             if(!Checker.dni(dni)) {
                 this.setError("#dni", "Debes introducir un DNI válido");
             }
@@ -485,6 +486,10 @@
             if (!app_data.tlf) {
                 app_data.tlf = null;
             }
+            if (!app_data.dni) {
+                app_data.dni = null;
+            }
+
             this.$el.html(this.template(app_data));
             this.delegateEvents();
             return this;
@@ -534,6 +539,13 @@
             } else {
                 tlf = $("#tlf").val();
             }
+            var dni = null;
+            if (app_data.dni) {
+                dni = app_data.dni;
+            } else {
+                dni = $("#dni").val().trim();
+            }
+
             var sms_code = $("#sms-code").val().trim().toUpperCase();
 
             // start checking
@@ -546,6 +558,9 @@
             if (!tlf) {
                 this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
             }
+            if(!Checker.dni(dni)) {
+                this.setError("#dni", "Debes introducir un DNI válido");
+            }
 
             if (this.errorFlag) {
                 this.sendingFlag = false;
@@ -555,7 +570,8 @@
 
             var inputData = {
                 "tlf": tlf,
-                "token": sms_code
+                "token": sms_code,
+                "dni": dni
             };
 
             var self = this;
