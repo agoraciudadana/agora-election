@@ -1,4 +1,4 @@
-    /*
+/*
     This file is part of agora-election.
     Copyright (C) 2014 Eduardo Robles Elvira <edulix AT agoravoting DOT com>
 
@@ -93,19 +93,25 @@
             "": "home",
             "identify": "identify",
             "verify-sms": "verify_sms",
-            "faq": "faq",
-            "authorities": "authorities",
             "contact": "contact",
             'mail-sent': 'mail_sent',
             'verify-vote': 'security_center',
             'verify-tally': 'security_center',
+            "page/:name": 'page',
 
         },
 
+        /**
+         * removes the current view and initializes the base template if it's
+         * the first time
+         */
         removeCurrentView: function() {
             if(app.current_view) {
                 app.current_view.remove();
-                $("#renderall-wrapper").html('<div id="renderall"></div>');
+                $("#main").prepend('<div id="render-view-canvas">');
+            } else {
+                var templ = _.template($("#template-base-view").html());
+                $("#renderall").html(templ(app_data));
             }
         },
 
@@ -122,16 +128,6 @@
         verify_sms: function() {
             this.removeCurrentView();
             app.current_view = new AE.VerifySMSView();
-        },
-
-        faq: function() {
-            this.removeCurrentView();
-            app.current_view = new AE.FAQView();
-        },
-
-        authorities: function() {
-            this.removeCurrentView();
-            app.current_view = new AE.AuthoritiesView();
         },
 
         contact: function() {
@@ -151,6 +147,11 @@
             {
                 app.current_view = new AE.SecurityCenterView();
             }
+        },
+
+        page: function(name) {
+            this.removeCurrentView();
+            app.current_view = new AE.PageView({name: name});
         }
     });
 
@@ -158,7 +159,7 @@
      * Home view - just renders the home page template with the app_data
      */
     AE.HomeView = Backbone.View.extend({
-        el: "#renderall",
+        el: "#render-view-canvas",
 
         events: {
             'click a.details': 'showDetails',
@@ -231,7 +232,7 @@
      * details, most importantly the telephone number.
      */
     AE.IdentifyView = Backbone.View.extend({
-        el: "#renderall",
+        el: "#render-view-canvas",
 
         events: {
             'click #identify-action': 'processForm'
@@ -469,7 +470,7 @@
      * Verify SMS view
      */
     AE.VerifySMSView = Backbone.View.extend({
-        el: "#renderall",
+        el: "#render-view-canvas",
 
         events: {
             'click #verify-action': 'processForm'
@@ -622,46 +623,10 @@
     });
 
     /**
-     * Authorities list view
-     */
-    AE.AuthoritiesView = Backbone.View.extend({
-        el: "#renderall",
-
-        initialize: function() {
-            this.template = _.template($("#template-authorities-view").html());
-            this.render();
-        },
-
-        render: function() {
-            this.$el.html(this.template(app_data));
-            this.delegateEvents();
-            return this;
-        }
-    });
-
-    /**
-     * FAQ view
-     */
-    AE.FAQView = Backbone.View.extend({
-        el: "#renderall",
-
-        initialize: function() {
-            this.template = _.template($("#template-faq-view").html());
-            this.render();
-        },
-
-        render: function() {
-            this.$el.html(this.template(app_data));
-            this.delegateEvents();
-            return this;
-        }
-    });
-
-    /**
      * Mail sent view
      */
     AE.MailSentView = Backbone.View.extend({
-        el: "#renderall",
+        el: "#render-view-canvas",
 
         initialize: function() {
             this.template = _.template($("#template-mail-sent-view").html());
@@ -679,7 +644,7 @@
      * Contact form view
      */
     AE.ContactView = Backbone.View.extend({
-        el: "#renderall",
+        el: "#render-view-canvas",
 
         events: {
             'click #send-message': 'processForm'
@@ -895,7 +860,7 @@
      * Security Center view
      */
     AE.SecurityCenterView = Backbone.View.extend({
-        el: "#renderall",
+        el: "#render-view-canvas",
         class_name: "security-center",
 
         events: {
@@ -1008,6 +973,61 @@
             'en detalle los pasos que seguiste para que podamos ' +
             'reproducir y arreglar el problema.', true);
             return;
+        }
+    });
+
+
+
+    /**
+     * Page view - renders the page template and loads via ajax the page
+     */
+    AE.PageView = Backbone.View.extend({
+        el: "#render-view-canvas",
+
+        options: {
+            name: ""
+        },
+
+        // constructor
+        initialize: function(options) {
+            this.options = _.defaults(options || {}, this.options);
+            this.template = _.template($("#template-page-view").html());
+            this.render();
+            this.requestContent();
+        },
+
+        // initial render
+        render: function() {
+            this.$el.html(this.template(app_data));
+            this.delegateEvents();
+            return this;
+        },
+
+        // requests the content of the page
+        requestContent: function() {
+            var self = this;
+            var pages = _.filter(app_data.static_pages, function(p) {
+                return p.name == self.options.name});
+
+            if (pages.length == 0) {
+                this.showError();
+                return;
+            }
+            var page = pages[0];
+
+            var jqxhr = $.ajax(page.path, {
+                contentType: 'application/json'
+            }).done(this.showContent)
+            .fail(this.showError);
+        },
+
+        // shows the received page content
+        showContent: function(data) {
+            $("#page-content").html(data);
+        },
+
+        showError: function() {
+            $("#page-content").html("Error cargando la página, prueba a intentarlo más tarde");
         }
     });
 

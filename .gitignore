@@ -3,3 +3,4 @@ custom_settings.py
 *.sqlite
 *.json
 __pycache__
+agora_election/static/pages/

@@ -19,7 +19,7 @@
 
   <div id="renderall-wrapper">
     <div id="renderall">
-      <p>Si ves este mensaje, significa que no ha cargado correctamente la página. Por favor, espera a que termine de cargar. Es posible que estés usando un navegador web antiguo o no soportado. Intenta cambiar de navegador si persiste el problema</p>
+      <p>Si ves este mensaje, significa que aun no ha cargado la página. Por favor, espera a que termine de cargar. Es posible que estés usando un navegador web antiguo o no soportado. Intenta cambiar de navegador si persiste el problema.</p>
     </div>
   </div>
   <!-- js dependencies -->
@@ -34,8 +34,9 @@
         var app_data = {{ data }};
     </script>
 
-  <!-- templates, mod_pagespeed will optimize them out with outline_javascript -->
-  <script type="text/underscore-template" id="template-home-view">
+  <!-- templates, mod_pagespeed will optimize them out with outline_javascript
+       if needed -->
+  <script type="text/underscore-template" id="template-base-view">
     <div class="container">
       <header id="header" class="cf">
         <a class="home-link" href="#" alt="Portada">
@@ -47,402 +48,278 @@
         </div>
       </header>
       <div id="main" class="main cr" role="main">
-        <section class="feature-block cf">
-          <div class="shadow-wrapper container-fluid"><div class="row">
-            <div class="campaign-excerpt col-xs-12 col-sm-7">
-              <p><%- election.description %></p>
-              <a href="#identify" class="btn-vote btn-dark">Vota</a>
-            </div>
-            <div class="extra-info col-xs-12 col-sm-5">
-              <div class="featured-item">
-                <strong><%- start_voting %></strong>
-                <i>Comienzo votación</i>
-              </div>
-              <div class="featured-item">
-                <strong><%- election.questions[0].answers.length %></strong>
-                <i>Candidatos</i>
-              </div>
-              <div class="featured-item">
-                <strong><%- end_voting %></strong>
-                <i>Fin votación</i>
-              </div>
-              <div class="featured-item">
-                <strong><%- election.questions[0].num_seats %></strong>
-                <i>Ganadores</i>
-              </div>
-              <div class="cf"></div>
-              <ul class="nav nav-pills nav-justified">
-                <li>
-                  <a href="#faq">
-                    Preguntas Frecuentes
-                  </a>
-                </li>
-                <li>
-                  <a href="#authorities">
-                    Autoridades de Votación
-                  </a>
-                </li>
-                <li>
-                  <a href="#verify-vote">
-                    Centro de seguridad
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div></div>
-        </section>
-
-        <section class="content-wrapper cr">
-          <div class="candidates-header cf">
-            <% if (election.tally_released_at_date == null) { %>
-              <h3>Candidaturas</h3>
-              <h4>En orden aleatorio</h4>
-            <% } else { %>
-              <h3>Lista de ganadores</h3>
-              <h4>En orden</h4>
-            <% } %>
-          </div>
-          <div class="candidates-wrapper container-fluid">
-            <% for(var i = 0; i< election.questions[0].answers.length; i++) { %>
-              <% if (i > 1 && i % 2 == 0) { %>
-                </div>
-                <div class="candidates-wrapper container-fluid">
-              <% }
-                 var candidate = election.questions[0].answers[i];
-              %>
-              <div class="col-xs-12 col-sm-6 candidate-item">
-                <div class="cf">
-                  <div class="description">
-                    <h3><%- candidate.value %></h3>
-                    <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
-                    <div class="container-fluid info-points">
-                      <div class="col-xs-7">
-                        <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
-                          Presentación y motivos
-                        </a>
-                        <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
-                          <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
-                            Web
-                          </a>
-                        <% } %>
-                      </div>
-                      <div class="col-xs-5">
-                        <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
-                          <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
-                            Twitter
-                          </a>
-                        <% } %>
-                        <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
-                          <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
-                            Facebook
-                          </a>
-                        <% } %>
-                      </div>
-                    </div>
-                  </div>
-                  <% if (candidate.media_url.length > 0) { %>
-                    <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
-                  <% } else { %>
-                    <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
-                  <% } %>
-                </div>
-              </div>
-            <% } %>
-          </div>
-        </section>
-
+        <div id="render-view-canvas">
+          <section class="content-wrapper cf row-fluid" id="page-content">
+            Cargando página..
+          </section>
+        </div>
 
         <section class="footer cr">
           <a href="//www.podemos.info" target="_blank" alt="Podemos portada">www.podemos.info</a> | <a href="#contact">Contacta</a>
+          <% for (var i = 0; i < static_pages.length; i++) { %>
+           | <a href="#page/<%- static_pages[i].name %>"><%- static_pages[i].title %></a>
+          <% } %>
         </section>
       </div>
     </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-home-view">
+    <section class="feature-block cf">
+      <div class="shadow-wrapper container-fluid"><div class="row">
+        <div class="campaign-excerpt col-xs-12 col-sm-7">
+          <p><%- election.description %></p>
+          <a href="#identify" class="btn-vote btn-dark">Vota</a>
+        </div>
+        <div class="extra-info col-xs-12 col-sm-5">
+          <div class="featured-item">
+            <strong><%- start_voting %></strong>
+            <i>Comienzo votación</i>
+          </div>
+          <div class="featured-item">
+            <strong><%- election.questions[0].answers.length %></strong>
+            <i>Candidatos</i>
+          </div>
+          <div class="featured-item">
+            <strong><%- end_voting %></strong>
+            <i>Fin votación</i>
+          </div>
+          <div class="featured-item">
+            <strong><%- election.questions[0].num_seats %></strong>
+            <i>Ganadores</i>
+          </div>
+          <div class="cf"></div>
+          <ul class="nav nav-pills nav-justified">
+            <li>
+              <a href="#page/faq">
+                Preguntas Frecuentes
+              </a>
+            </li>
+            <li>
+              <a href="#page/authorities">
+                Autoridades de Votación
+              </a>
+            </li>
+            <li>
+              <a href="#verify-vote">
+                Centro de seguridad
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div></div>
+    </section>
+
+    <section class="content-wrapper cr">
+      <div class="candidates-header cf">
+        <% if (election.tally_released_at_date == null) { %>
+          <h3>Candidaturas</h3>
+          <h4>En orden aleatorio</h4>
+        <% } else { %>
+          <h3>Lista de ganadores</h3>
+          <h4>En orden</h4>
+        <% } %>
+      </div>
+      <div class="candidates-wrapper container-fluid">
+        <% for(var i = 0; i< election.questions[0].answers.length; i++) { %>
+          <% if (i > 1 && i % 2 == 0) { %>
+            </div>
+            <div class="candidates-wrapper container-fluid">
+          <% }
+              var candidate = election.questions[0].answers[i];
+          %>
+          <div class="col-xs-12 col-sm-6 candidate-item">
+            <div class="cf">
+              <div class="description">
+                <h3><%- candidate.value %></h3>
+                <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
+                <div class="container-fluid info-points">
+                  <div class="col-xs-7">
+                    <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
+                      Presentación y motivos
+                    </a>
+                    <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
+                      <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
+                        Web
+                      </a>
+                    <% } %>
+                  </div>
+                  <div class="col-xs-5">
+                    <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
+                      <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
+                        Twitter
+                      </a>
+                    <% } %>
+                    <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
+                      <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
+                        Facebook
+                      </a>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+              <% if (candidate.media_url.length > 0) { %>
+                <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+              <% } else { %>
+                <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </section>
   </script>
 
   <script type="text/underscore-template" id="template-identify-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
-
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
-        </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Identifícate (paso 1 de 4)</h2>
-          </div>
-          <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
-            <div class="form-group">
-              <label for="first-name">Nombre</label>
-              <input type="text" class="form-control" id="first-name" placeholder="">
-              <p class="help-block"></p>
-            </div>
-            <div class="form-group">
-              <label for="last-name">Apellidos</label>
-              <input type="text" class="form-control" id="last-name" placeholder="">
-              <p class="help-block"></p>
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" class="form-control" id="email" placeholder="">
-              <p class="help-block"></p>
-            </div>
-            <div class="form-group">
-              <label for="dni">DNI</label>
-              <input type="text" class="form-control" id="dni" placeholder="">
-              <p class="help-block">El DNI con letra incluida, ejemplo: 12345678A</p>
-            </div>
-            <div class="form-group">
-              <label for="tlf">Teléfono</label>
-              <input type="text" class="form-control" id="tlf" placeholder="">
-              <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
-            </div>
-            <div class="form-group">
-              <label for="postal-code">Código postal</label>
-              <input type="text" class="form-control" id="postal-code" placeholder="">
-              <p class="help-block"></p>
-            </div>
-            <div class="checkbox form-group">
-              <label>
-                <input type="checkbox" id="above-age"> Tengo más de 16 años
-                <p class="help-block"></p>
-              </label>
-            </div>
-            <div class="checkbox form-group">
-              <label>
-                <input type="checkbox" id="receive-mail-updates"> Recibir actualizaciones por email
-                <p class="help-block"></p>
-              </label>
-            </div>
-            <div class="textarea-tos">
-              <%- tos.text %>
-            </div>
-            <div class="checkbox form-group">
-              <label>
-                <input type="checkbox" id="accept-conditions"> <%- tos.title %>
-                <p class="help-block"></p>
-              </label>
-            </div>
-            <% if (register_shows_captcha) { %>
-              <div class="form-group">
-                <label for="tlf">Captcha</label>
-                <img id="captcha-img" src="" alt="captcha" />
-                <a href="#" target="_blank" alt="audio-captcha" id="captcha-audio"><span class="glyphicon glyphicon-headphones"></span></a>
-                <input type="text" class="form-control" id="captcha-text" placeholder="">
-                <p class="help-block">Obligatorio. Introduce los caracteres que veas en la imagen.</p>
-              </div>
-            <% } %>
-            <div id="error-message"></div>
-            <button id="identify-action" class="btn btn-light btn-block">Identificarme</button>
-          </form>
-          <div class="section-header col-xs-12 col-sm-6">
-            <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes ser mayor de edad y tener un móvil con teléfono español para votar. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
-          </div>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
+    <section class="content-wrapper cf row-fluid">
+      <div class="col-xs-12 col-sm-12">
+        <h2 class="section-title">Identifícate (paso 1 de 4)</h2>
       </div>
-    </div>
+      <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
+        <div class="form-group">
+          <label for="first-name">Nombre</label>
+          <input type="text" class="form-control" id="first-name" placeholder="">
+          <p class="help-block"></p>
+        </div>
+        <div class="form-group">
+          <label for="last-name">Apellidos</label>
+          <input type="text" class="form-control" id="last-name" placeholder="">
+          <p class="help-block"></p>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" placeholder="">
+          <p class="help-block"></p>
+        </div>
+        <div class="form-group">
+          <label for="dni">DNI</label>
+          <input type="text" class="form-control" id="dni" placeholder="">
+          <p class="help-block">El DNI con letra incluida, ejemplo: 12345678A</p>
+        </div>
+        <div class="form-group">
+          <label for="tlf">Teléfono</label>
+          <input type="text" class="form-control" id="tlf" placeholder="">
+          <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
+        </div>
+        <div class="form-group">
+          <label for="postal-code">Código postal</label>
+          <input type="text" class="form-control" id="postal-code" placeholder="">
+          <p class="help-block"></p>
+        </div>
+        <div class="checkbox form-group">
+          <label>
+            <input type="checkbox" id="above-age"> Tengo más de 16 años
+            <p class="help-block"></p>
+          </label>
+        </div>
+        <div class="checkbox form-group">
+          <label>
+            <input type="checkbox" id="receive-mail-updates"> Recibir actualizaciones por email
+            <p class="help-block"></p>
+          </label>
+        </div>
+        <div class="textarea-tos">
+          <%- tos.text %>
+        </div>
+        <div class="checkbox form-group">
+          <label>
+            <input type="checkbox" id="accept-conditions"> <%- tos.title %>
+            <p class="help-block"></p>
+          </label>
+        </div>
+        <% if (register_shows_captcha) { %>
+          <div class="form-group">
+            <label for="tlf">Captcha</label>
+            <img id="captcha-img" src="" alt="captcha" />
+            <a href="#" target="_blank" alt="audio-captcha" id="captcha-audio"><span class="glyphicon glyphicon-headphones"></span></a>
+            <input type="text" class="form-control" id="captcha-text" placeholder="">
+            <p class="help-block">Obligatorio. Introduce los caracteres que veas en la imagen.</p>
+          </div>
+        <% } %>
+        <div id="error-message"></div>
+        <button id="identify-action" class="btn btn-light btn-block">Identificarme</button>
+      </form>
+      <div class="section-header col-xs-12 col-sm-6">
+        <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes ser mayor de edad y tener un móvil con teléfono español para votar. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
+      </div>
+    </section>
   </script>
 
   <script type="text/underscore-template" id="template-verify-sms-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
-
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
-        </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Verifica tu código SMS (paso 2 de 4)</h2>
-          </div>
-          <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
-            <% if (!tlf) { %>
-              <div class="form-group">
-                <label for="tlf">Teléfono</label>
-                <input type="text" class="form-control" id="tlf" placeholder="">
-                <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
-              </div>
-            <% } %>
-            <div class="form-group">
-              <label for="sms-code">Código SMS</label>
-              <input type="text" class="form-control" id="sms-code" placeholder="">
-              <p class="help-block">Ten paciencia, tardará unos segundos en llegarte el código por SMS al móvil.</p>
-            </div>
-            <div id="error-message"></div>
-            <button id="verify-action" class="btn btn-light btn-block">Verificar código SMS</button>
-          </form>
-          <div class="section-header col-xs-12 col-sm-6">
-            <p>En este segundo paso debes de introducir un código SMS que has debido recibir en tu teléfono móvil para que verifiquemos tu identidad y así puedas entrar a la cabina de votación. Si no te ha llegado el mensaje SMS</strong>, si aun no te lo hemos enviado, si ha caducado o si estás teniendo problemas, puedes probar a <a href="#identify">identificarte de nuevo</a>. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
-          </div>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
+    <section class="content-wrapper cf row-fluid">
+      <div class="col-xs-12 col-sm-12">
+        <h2 class="section-title">Verifica tu código SMS (paso 2 de 4)</h2>
       </div>
-    </div>
-  </script>
-
-  <script type="text/underscore-template" id="template-faq-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
-
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
+      <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
+        <% if (!tlf) { %>
+          <div class="form-group">
+            <label for="tlf">Teléfono</label>
+            <input type="text" class="form-control" id="tlf" placeholder="">
+            <p class="help-block">El teléfono debe ser español, ejemplo: +34 666 666 666</p>
+          </div>
+        <% } %>
+        <div class="form-group">
+          <label for="sms-code">Código SMS</label>
+          <input type="text" class="form-control" id="sms-code" placeholder="">
+          <p class="help-block">Ten paciencia, tardará unos segundos en llegarte el código por SMS al móvil.</p>
         </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid" id="faq-list">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Preguntas Frecuentes</h2>
-          </div>
-          <% for(var i = 0; i < faq_questions.length; i++) { %>
-          <a data-toggle="collapse" data-parent="#faq-list" href="#q<%- (i+1) %>">
-            <h3><%- (i+1) %>. <%- faq_questions[i].question %></h3>
-          </a>
-          <div class="collapse" id="q<%- (i+1) %>">
-            <%= faq_questions[i].answer %>
-          </div>
-          <% } %>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
+        <div id="error-message"></div>
+        <button id="verify-action" class="btn btn-light btn-block">Verificar código SMS</button>
+      </form>
+      <div class="section-header col-xs-12 col-sm-6">
+        <p>En este segundo paso debes de introducir un código SMS que has debido recibir en tu teléfono móvil para que verifiquemos tu identidad y así puedas entrar a la cabina de votación. Si no te ha llegado el mensaje SMS</strong>, si aun no te lo hemos enviado, si ha caducado o si estás teniendo problemas, puedes probar a <a href="#identify">identificarte de nuevo</a>. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
       </div>
-    </div>
-  </script>
-
-  <script type="text/underscore-template" id="template-authorities-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
-
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
-        </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid" id="faq-list">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Autoridades</h2>
-            <p>Las autoridades de la votación juegan un papel fundamental. La fortaleza del sistema de seguridad usado en esta votación reside en un <strong>sistema de seguridad compartida</strong> análogo a los apoderados e interventores en las elecciones tradicionales, donde la clave cifrada de la votación se genera de forma distribuida por un conjunto de <strong>autoridades independientes de la votación</strong>, que velan por el secreto del voto y son las que ejecutan el recuento.</p>
-
-            <p>Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>. Son <%- authorities.length %> las autoridades en esta votación:</p>
-
-          <% for(var i = 0; i < authorities.length; i++) { %>
-            <h3><%- authorities[i].name %></h3>
-            <h4><a href="<%- authorities[i].url %>"><%- authorities[i].url %></a></h4>
-            <%= authorities[i].description %>
-          <% } %>
-          </div>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
-      </div>
-    </div>
+    </section>
   </script>
 
   <script type="text/underscore-template" id="template-contact-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
-
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
-        </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Contacta con nosotros</h2>
-          </div>
-          <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
-            <div class="form-group">
-              <label for="name">Nombre y Apellidos</label>
-              <input type="text" class="form-control" id="name" placeholder="">
-              <p class="help-block"></p>
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" class="form-control" id="email" placeholder="">
-              <p class="help-block">Obligatorio. Necesitamos saber tu dirección de email para poder responderte</p>
-            </div>
-              <div class="form-group">
-                <label for="tlf">Teléfono</label>
-                <input type="text" class="form-control" id="tlf" placeholder="">
-                <p class="help-block">Opcional. Si has tenido algún problema con tu número de teléfono, especifica aquí con cual</p>
-              </div>
-            <div class="form-group">
-              <textarea id="text-body" class="col-xs-12" rows="5" placeholder="Escribe aquí tu mensaje"></textarea>
-              <p class="help-block"></p>
-            </div>
-            <div class="form-group">
-              <label for="tlf">Captcha</label>
-              <img id="captcha-img" src="" alt="captcha" />
-              <a href="#" target="_blank" alt="audio-captcha" id="captcha-audio"><span class="glyphicon glyphicon-headphones"></span></a>
-              <input type="text" class="form-control" id="captcha-text" placeholder="">
-              <p class="help-block">Obligatorio. Introduce los caracteres que veas en la imagen.</p>
-            </div>
-            <div id="error-message"></div>
-            <button id="send-message" class="btn btn-light btn-block">Contactar</button>
-          </form>
-          <div class="section-header col-xs-12 col-sm-6">
-            <p>Si has tenido algún problema en el proceso de votación, o si tienes alguna duda o consulta que hacernos, puedes contactar con nosotros a través de este formulario de contacto. También puedes hacerlo enviándonos un email a <a href="mailto:<%- contact.email %>" target="_blank"><%- contact.email %></a> o contáctanos por twitter en <a href="https://twitter.com/<%- contact.twitter_username %>" target="_blank">@<%- contact.twitter_username %></a>.</p>
-          </div>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
+    <section class="content-wrapper cf row-fluid">
+      <div class="col-xs-12 col-sm-12">
+        <h2 class="section-title">Contacta con nosotros</h2>
       </div>
-    </div>
+      <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
+        <div class="form-group">
+          <label for="name">Nombre y Apellidos</label>
+          <input type="text" class="form-control" id="name" placeholder="">
+          <p class="help-block"></p>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" placeholder="">
+          <p class="help-block">Obligatorio. Necesitamos saber tu dirección de email para poder responderte</p>
+        </div>
+          <div class="form-group">
+            <label for="tlf">Teléfono</label>
+            <input type="text" class="form-control" id="tlf" placeholder="">
+            <p class="help-block">Opcional. Si has tenido algún problema con tu número de teléfono, especifica aquí con cual</p>
+          </div>
+        <div class="form-group">
+          <textarea id="text-body" class="col-xs-12" rows="5" placeholder="Escribe aquí tu mensaje"></textarea>
+          <p class="help-block"></p>
+        </div>
+        <div class="form-group">
+          <label for="tlf">Captcha</label>
+          <img id="captcha-img" src="" alt="captcha" />
+          <a href="#" target="_blank" alt="audio-captcha" id="captcha-audio"><span class="glyphicon glyphicon-headphones"></span></a>
+          <input type="text" class="form-control" id="captcha-text" placeholder="">
+          <p class="help-block">Obligatorio. Introduce los caracteres que veas en la imagen.</p>
+        </div>
+        <div id="error-message"></div>
+        <button id="send-message" class="btn btn-light btn-block">Contactar</button>
+      </form>
+      <div class="section-header col-xs-12 col-sm-6">
+        <p>Si has tenido algún problema en el proceso de votación, o si tienes alguna duda o consulta que hacernos, puedes contactar con nosotros a través de este formulario de contacto. También puedes hacerlo enviándonos un email a <a href="mailto:<%- contact.email %>" target="_blank"><%- contact.email %></a> o contáctanos por twitter en <a href="https://twitter.com/<%- contact.twitter_username %>" target="_blank">@<%- contact.twitter_username %></a>.</p>
+      </div>
+    </section>
   </script>
 
-    <script type="text/underscore-template" id="template-mail-sent-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
-
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
-        </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid" id="faq-list">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Mensaje enviado</h2>
-            <p>Ya hemos recibido tu mensaje. Lo leeremos y contestareamos con la mayor brevedad posible. Gracias por ponerte en contacto con nosotros.</p>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
+  <script type="text/underscore-template" id="template-mail-sent-view">
+    <section class="content-wrapper cf row-fluid">
+      <div class="col-xs-12 col-sm-12">
+        <h2 class="section-title">Mensaje enviado</h2>
+        <p>Ya hemos recibido tu mensaje. Lo leeremos y contestareamos con la mayor brevedad posible. Gracias por ponerte en contacto con nosotros.</p>
       </div>
-    </div>
+    </section>
   </script>
 
 
@@ -475,87 +352,76 @@
   </script>
 
   <script type="text/underscore-template" id="template-security-center-view">
-    <div class="container">
-      <header id="header" class="cf">
-        <a class="home-link" href="#" alt="Portada">
-        </a>
+    <section class="content-wrapper cf row-fluid">
+      <div class="col-xs-12 col-sm-12">
+        <h2 class="section-title">Centro de Seguridad</h2>
+      </div>
 
-        <div class="headlines col-md-6">
-          <h2><%- election.pretty_name %></h2>
-          <h3><%- subtitle %></h3>
-        </div>
-      </header>
-      <div id="main" class="main cr" role="main">
-        <section class="content-wrapper cf row-fluid">
-          <div class="col-xs-12 col-sm-12">
-            <h2 class="section-title">Centro de Seguridad</h2>
-          </div>
+      <ul class="nav nav-tabs" id="verify-tabs">
+        <li class="active"><a href="#verify-vote" data-toggle="tab">
+          Verifica tu voto
+        </a></li>
+        <li><a href="#verify-tally" data-toggle="tab">
+          Verifica el recuento
+        </a></li>
+      </ul>
 
-          <ul class="nav nav-tabs" id="verify-tabs">
-            <li class="active"><a href="#verify-vote" data-toggle="tab">
-              Verifica tu voto
-            </a></li>
-            <li><a href="#verify-tally" data-toggle="tab">
-              Verifica el recuento
-            </a></li>
-          </ul>
-
-          <div class="tab-content">
-            <div class="tab-pane active" id="verify-vote">
-              <form id="verify-vote-form" role="form" class="col-xs-12 col-sm-7">
-                <div class="form-group">
-                  <label for="tracker">Localizador del voto</label>
-                  <input type="text" class="form-control" id="tracker" placeholder="">
-                  <p class="help-block">El localizador de tu voto, por ejemplo 78a319dbd699c5d6ff08ca08990b395e593bcb8282a7660417a50d0ee470503f</p>
+      <div class="tab-content">
+        <div class="tab-pane active" id="verify-vote">
+          <form id="verify-vote-form" role="form" class="col-xs-12 col-sm-7">
+            <div class="form-group">
+              <label for="tracker">Localizador del voto</label>
+              <input type="text" class="form-control" id="tracker" placeholder="">
+              <p class="help-block">El localizador de tu voto, por ejemplo 78a319dbd699c5d6ff08ca08990b395e593bcb8282a7660417a50d0ee470503f</p>
+            </div>
+            <div id="error-message"></div>
+            <button id="verify-action" class="btn btn-light btn-block">
+              Comprobar mi voto
+            </button>
+            <div id="verify-result" class="hidden">
+              <div class="tab-pane">
+                <h2>Resultado</h2>
+                <p>¡Enhorabuena! El voto con con el localizador <strong id="tracker-id"></strong> se ha contabilizado correctamente. Si quieres ver los detalles técnicos del voto, <a data-toggle="collapse" data-parent="#verify-tally" href="#vote-details">pincha aquí</a></p>
+                <div class="collapse console-line" id="vote-details">
                 </div>
-                <div id="error-message"></div>
-                <button id="verify-action" class="btn btn-light btn-block">
-                  Comprobar mi voto
-                </button>
-                <div id="verify-result" class="hidden">
-                  <div class="tab-pane">
-                    <h2>Resultado</h2>
-                    <p>¡Enhorabuena! El voto con con el localizador <strong id="tracker-id"></strong> se ha contabilizado correctamente. Si quieres ver los detalles técnicos del voto, <a data-toggle="collapse" data-parent="#verify-tally" href="#vote-details">pincha aquí</a></p>
-                    <div class="collapse console-line" id="vote-details">
-                    </div>
-                  </div>
-                </div>
-              </form>
-              <div class="section-header col-xs-12 col-sm-5">
-                <p>Cuando emites tu voto, te aparece el localizador de tu voto para que puedas seguirle el rastro sin desvelar el secreto del voto. Aquí puedes introducirlo y ver que efectivamente tu voto fue emitido y recogido correctamente. Más información en las <a href="#faq" target="_blank">preguntas frecuentes</a>.</p>
               </div>
             </div>
-            <div class="tab-pane" id="verify-tally">
-              <% if (election.tally_released_at_date == null) { %>
-                <p>En cuanto se cierre la votación, se realice el recuento y se publiquen los resultados, cualquiera podrá verificar los resultados de la votación siguiendo unos sencillos pasos que aquí se detallarán.</p>
-              <% } else { %>
-                <p>Para verificar la votación, sigue estos pasos:</p>
-                <ol>
-                    <li>
-                        <p>Descarga <a target="_blank" href="https://congresotransparente.com/static/agora-verifier">agora-verifier</a> (necesitarás Linux x64 bits con python 2.7 y Java 7)</p>
-                    </li>
-                    <li>
-                        <p>Descarga <a target="_blank" href="<%- election.base_url %>/media/elections/<%- election.id %>/tally.tar.gz">el recuento de la votación</a></p>
-                    </li>
-                    <li>
-                        <p>Indica el directorio donde hayas descargado ambos archivos y ejecuta el siguiente comando para verificar el recuento:</p>
-                        <div class="console-line">
-                        sh agora-verifier tally.tar.gz</h2>
-                        </div>
-                    </li>
-                </ol>
-                <p>Para verificar que se haya contado tu voto, ejecuta:</p>
-                <div class="console-line">sh agora-verifier tally.tar.gz &lt;tracker-id&gt;</div>
-              </div>
-            <% } %>
+          </form>
+          <div class="section-header col-xs-12 col-sm-5">
+            <p>Cuando emites tu voto, te aparece el localizador de tu voto para que puedas seguirle el rastro sin desvelar el secreto del voto. Aquí puedes introducirlo y ver que efectivamente tu voto fue emitido y recogido correctamente. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
           </div>
-        </section>
-
-        <section class="footer cf">
-          <a href="<%- parent_site.url %>" target="_blank" alt="<%- parent_site.name %>"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
-        </section>
+        </div>
+        <div class="tab-pane" id="verify-tally">
+          <% if (election.tally_released_at_date == null) { %>
+            <p>En cuanto se cierre la votación, se realice el recuento y se publiquen los resultados, cualquiera podrá verificar los resultados de la votación siguiendo unos sencillos pasos que aquí se detallarán.</p>
+          <% } else { %>
+            <p>Para verificar la votación, sigue estos pasos:</p>
+            <ol>
+                <li>
+                    <p>Descarga <a target="_blank" href="https://congresotransparente.com/static/agora-verifier">agora-verifier</a> (necesitarás Linux x64 bits con python 2.7 y Java 7)</p>
+                </li>
+                <li>
+                    <p>Descarga <a target="_blank" href="<%- election.base_url %>/media/elections/<%- election.id %>/tally.tar.gz">el recuento de la votación</a></p>
+                </li>
+                <li>
+                    <p>Indica el directorio donde hayas descargado ambos archivos y ejecuta el siguiente comando para verificar el recuento:</p>
+                    <div class="console-line">
+                    sh agora-verifier tally.tar.gz</h2>
+                    </div>
+                </li>
+            </ol>
+            <p>Para verificar que se haya contado tu voto, ejecuta:</p>
+            <div class="console-line">sh agora-verifier tally.tar.gz &lt;tracker-id&gt;</div>
+          </div>
+        <% } %>
       </div>
-    </div>
+    </section>
+  </script>
+
+  <script type="text/underscore-template" id="template-page-view">
+    <section class="content-wrapper cf row-fluid" id="page-content">
+      Cargando página..
+    </section>
   </script>
 
   <!-- real ours js code -->

@@ -57,17 +57,33 @@ def get_json(fname):
     with open(fname, 'r', encoding="utf-8") as f:
         return json.loads(f.read())
 
+# list of static pages, which should be .json files available in the current
+# directory. Example:
+#STATIC_PAGES = [
+    #{
+        #'title': 'Preguntas frecuentes',
+        #'name': 'faq',
+        #'path': 'static/pages/faq.html'
+    #},
+    #{
+        #'title': 'Autoridades de votación',
+        #'name': 'authorities',
+        #'path': 'static/pages/authorities.html'
+    #}
+#]
+STATIC_PAGES = []
+
 AGORA_ELECTION_DATA = dict(
     parent_site=dict(
         name="www.podemos.info",
         url="//www.podemos.info",
     ),
     election=get_json('election.json'),
-    faq_questions=get_json('faq.json'),
     subtitle="Una candidatura popular y ciudadana",
     start_voting="20 marzo, 10:00",
     end_voting="27 marzo, 10:00",
     tlf_no_rx=ALLOWED_TLF_NUMS_RX,
+    static_pages=STATIC_PAGES,
     contact=dict(
         email="agora@agoravoting.com",
         twitter_username="agoravoting"
@@ -75,24 +91,7 @@ AGORA_ELECTION_DATA = dict(
     tos=dict(
         title="He leído y acepto las condiciones",
         text="De acuerdo con lo dispuesto en la Ley Orgánica 15/1999, de 13 de diciembre, de protección de datos de carácter personal, informamos que los datos personales recogidos aquí serán incorporados a un fichero titularidad de la Asociación por la Participación Social y Cultural con CIF G8693671 creada para esta la gestión administrativa de esta iniciativa. El fichero está inscrito en el Registro General de la Agencia Española de Protección de Datos. Mediante el envío del formulario existente en esta página web, el/la remitente presta su consentimiento al tratamiento automatizado de los datos incluidos en el mismo. Nos comprometemos asimismo al uso responsable y confidencial de los datos, garantizando que los datos de las/los usuarios se tratarán de acuerdo con las exigencias legales. En ningún caso los datos facilitados serán objeto de venta ni cesión a terceros. Podrá ejercitar los derechos de acceso, rectificación, cancelación y oposición establecidos en dicha Ley a través de correo electrónica, adjuntando fotocopia de su DNI/Pasaporte, en la siguiente dirección: participasocialcultural@gmail.com"
-    ),
-    authorities=[
-        dict(
-            name="AgoraVoting",
-            url="https://agoravoting.com",
-            description="<p>Es la plataforma de votación de software libre con la que se realizan estas primarias. Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p>"
-        ),
-        dict(
-            name="Fundación Civio",
-            url="http://civio.es",
-            description="<p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p><p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p>"
-        ),
-        dict(
-            name="Hackandalus",
-            url="https://hackandalus.net",
-            description="<p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p><p>Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem.</p>"
-        ),
-    ]
+    )
 )
 
 ########### flask
