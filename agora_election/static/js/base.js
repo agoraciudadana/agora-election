@@ -657,9 +657,7 @@
 
         render: function() {
             this.$el.html(this.template(app_data));
-            if (app_data.register_shows_captcha) {
-                this.getCaptcha(false);
-            }
+            this.getCaptcha(false);
             this.delegateEvents();
             return this;
         },
