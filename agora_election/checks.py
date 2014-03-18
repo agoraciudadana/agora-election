@@ -101,7 +101,7 @@ def dni_constraint(val):
     letter = val[8].upper()
 
     expected = mod_letters[int(digits) % 23]
-    print("dni constraint %s %s" % (letter, expected))
+
     return letter == expected
 
 def int_constraint(val, min_val=None, max_val=None):
