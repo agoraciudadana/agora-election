@@ -59,6 +59,8 @@
           <% for (var i = 0; i < static_pages.length; i++) { %>
            | <a href="#page/<%- static_pages[i].name %>"><%- static_pages[i].title %></a>
           <% } %>
+          <br/>
+          <p>Funciona con <a href="https://agoravoting.com" target="_blank">software libre</a>.</p>
         </section>
       </div>
     </div>
@@ -85,8 +87,8 @@
             <i>Fin votación</i>
           </div>
           <div class="featured-item">
-            <strong><%- election.questions[0].num_seats %></strong>
-            <i>Ganadores</i>
+            <strong><%- num_votes %></strong>
+            <i>Votos</i>
           </div>
           <div class="cf"></div>
           <ul class="nav nav-pills nav-justified">

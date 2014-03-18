@@ -82,6 +82,7 @@ AGORA_ELECTION_DATA = dict(
     subtitle="Una candidatura popular y ciudadana",
     start_voting="20 marzo, 10:00",
     end_voting="27 marzo, 10:00",
+    num_votes="0",
     tlf_no_rx=ALLOWED_TLF_NUMS_RX,
     static_pages=STATIC_PAGES,
     contact=dict(
