@@ -71,7 +71,9 @@
       <div class="shadow-wrapper container-fluid"><div class="row">
         <div class="campaign-excerpt col-xs-12 col-sm-7">
           <p><%- election.description %></p>
-          <a href="#identify" class="btn-vote btn-dark">Vota</a>
+          <% if (election.voting_ends_at_date == null) { %>
+            <a href="#identify" class="btn-vote btn-dark">Vota</a>
+          <% } %>
         </div>
         <div class="extra-info col-xs-12 col-sm-5">
           <div class="featured-item">
@@ -112,64 +114,135 @@
       </div></div>
     </section>
 
-    <section class="content-wrapper cr">
-      <div class="candidates-header cf">
-        <% if (election.tally_released_at_date == null) { %>
-          <h3>Candidaturas</h3>
-          <h4>En orden aleatorio</h4>
-        <% } else { %>
-          <h3>Lista de ganadores</h3>
-          <h4>En orden</h4>
-        <% } %>
-      </div>
-      <div class="candidates-wrapper container-fluid">
-        <% for(var i = 0; i< election.questions[0].answers.length; i++) { %>
-          <% if (i > 1 && i % 2 == 0) { %>
-            </div>
-            <div class="candidates-wrapper container-fluid">
-          <% }
-              var candidate = election.questions[0].answers[i];
-          %>
-          <div class="col-xs-12 col-sm-6 candidate-item">
-            <div class="cf">
-              <div class="description">
-                <h3><%- candidate.value %></h3>
-                <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
-                <div class="container-fluid info-points">
-                  <div class="col-xs-7">
-                    <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
-                      Presentación y motivos
+    <section class="content-wrapper cr" id="candidates-list">
+      <!-- here goes the candidates list or the results -->
+    </section>
+  </script>
+
+  <script type="text/underscore-template" id="template-candidates-approval-double-results-view">
+    <div class="candidates-header cf">
+        <h3>Lista de ganadores (en orden)</h3>
+    </div>
+    <div class="candidates-wrapper container-fluid">
+      <% for(var i = 0; i < election.result.counts[1].winners.length; i++) { %>
+        <% if (i > 1 && i % 2 == 0) { %>
+          </div>
+          <div class="candidates-wrapper container-fluid">
+        <%  }
+            var winner_name = election.result.counts[1].winners[i];
+
+            var candidate = AE.getCandidateCount(
+              winner_name,
+              election.result.counts[0].answers);
+
+            var candidate_first = AE.getCandidateCount(
+              winner_name,
+              election.result.counts[1].answers);
+        %>
+        <div class="col-xs-12 col-sm-6 candidate-item">
+          <div class="cf">
+            <div class="description">
+              <h3><% if (election.tally_released_at_date != null) { %><%- (i + 1) %>. <% } %><%- candidate.value %></h3>
+              <div class="question-result-name">
+                1º pregunta
+              <div class="question-result-value">
+                <%- candidate_first.total_count %> votos
+              </div>
+              </div>
+              <div class="question-result-name last">
+                2º pregunta
+              <div class="question-result-value">
+                <%- candidate.total_count %> votos
+              </div>
+              </div>
+              <div class="container-fluid info-points">
+                <div class="col-xs-7">
+                  <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
+                    Presentación y motivos
+                  </a>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
+                      Web
                     </a>
-                    <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
-                      <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
-                        Web
-                      </a>
-                    <% } %>
-                  </div>
-                  <div class="col-xs-5">
-                    <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
-                      <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
-                        Twitter
-                      </a>
-                    <% } %>
-                    <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
-                      <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
-                        Facebook
-                      </a>
-                    <% } %>
-                  </div>
+                  <% } %>
+                </div>
+                <div class="col-xs-5">
+                  <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
+                      Twitter
+                    </a>
+                  <% } %>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
+                      Facebook
+                    </a>
+                  <% } %>
                 </div>
               </div>
-              <% if (candidate.media_url.length > 0) { %>
-                <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
-              <% } else { %>
-                <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
-              <% } %>
             </div>
+            <% if (candidate.media_url.length > 0) { %>
+              <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+            <% } else { %>
+              <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+            <% } %>
           </div>
-        <% } %>
-      </div>
-    </section>
+        </div>
+      <% } %>
+    </div>
+  </script>
+
+  <script type="text/underscore-template" id="template-candidates-list-view">
+    <div class="candidates-header cf">
+        <h3>Candidaturas</h3>
+        <h4>En orden aleatorio</h4>
+    </div>
+    <div class="candidates-wrapper container-fluid">
+      <% for(var i = 0; i< election.questions[0].answers.length; i++) { %>
+        <% if (i > 1 && i % 2 == 0) { %>
+          </div>
+          <div class="candidates-wrapper container-fluid">
+        <% }
+            var candidate = election.questions[0].answers[i];
+        %>
+        <div class="col-xs-12 col-sm-6 candidate-item">
+          <div class="cf">
+            <div class="description">
+              <h3><%- candidate.value %></h3>
+              <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
+              <div class="container-fluid info-points">
+                <div class="col-xs-7">
+                  <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
+                    Presentación y motivos
+                  </a>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
+                      Web
+                    </a>
+                  <% } %>
+                </div>
+                <div class="col-xs-5">
+                  <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
+                      Twitter
+                    </a>
+                  <% } %>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
+                      Facebook
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+            <% if (candidate.media_url.length > 0) { %>
+              <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+            <% } else { %>
+              <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
   </script>
 
   <script type="text/underscore-template" id="template-identify-view">

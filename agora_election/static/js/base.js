@@ -155,6 +155,16 @@
         }
     });
 
+    AE.getCandidateCount = function(name, results) {
+        for(var i = 0; i < results.length; i++) {
+            if (results[i].value == name) {
+                return results[i];
+            }
+        }
+        console.log("name = " + name + ", not found");
+        return null;
+    };
+
     /**
      * Home view - just renders the home page template with the app_data
      */
@@ -167,6 +177,11 @@
 
         initialize: function() {
             this.template = _.template($("#template-home-view").html());
+            if (app_data.election.tally_released_at_date == null) {
+                this.tmplCandidates = _.template($("#template-candidates-list-view").html());
+            } else {
+                this.tmplCandidates = _.template($("#template-candidates-approval-double-results-view").html());
+            }
             this.tmplCandModalBody = _.template($("#template-candidate-modal-body").html());
             this.render();
         },
@@ -176,6 +191,7 @@
                 app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
             }
             this.$el.html(this.template(app_data));
+            this.$el.find("#candidates-list").html(this.tmplCandidates(app_data));
             this.delegateEvents();
             return this;
         },
@@ -196,8 +212,11 @@
      * Process the long description of a candidate getting only some short
      * description
      */
-    AE.shortDetails = function(description)  {
-        var ret = description.substr(0, 140);
+    AE.shortDetails = function(description, max_length)  {
+        if (max_length == undefined) {
+            max_length = 140;
+        }
+        var ret = description.substr(0, max_length);
         return ret.replace(/(<\/p>|<p>|<p|p>|<\/|>|<)/g, "") + " ..";
     };
 
