@@ -438,6 +438,12 @@ form #error-message {
     font-size: 1em;
 }
 
+/* results table */
+
+table.table td.winner {
+    font-weight: bold;
+}
+
 /* Small devices (tablets, 768px and up) */
 @media (min-width: 768px) {
     #header, .content-wrapper {

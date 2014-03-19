@@ -134,9 +134,15 @@
       <tbody>
         <% for(var i = 0; i < answers.length; i++) { %>
         <tr>
-          <td><%- (i +1) %></td>
-          <td><%- answers[i].value %></td>
-          <td><%- answers[i].total_count %></td>
+          <% var pos = _.indexOf(winners, answers[i].value); if (pos != -1) { %>
+            <td class="winner"><%- (pos + 1) %></td>
+            <td class="winner"><%- answers[i].value %></td>
+            <td class="winner"><%- answers[i].total_count %></td>
+          <% } else { %>
+            <td>-</td>
+            <td><%- answers[i].value %></td>
+            <td><%- answers[i].total_count %></td>
+          <% } %>
         </tr>
         <% } %>
       </tbody>
