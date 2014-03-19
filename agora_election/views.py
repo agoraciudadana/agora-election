@@ -64,6 +64,10 @@ def post_register():
     from tasks import send_sms
     from models import Voter, Message
 
+    election = current_app.config.get('AGORA_ELECTION_DATA', '')['election']
+    if election['voting_ends_at_date'] is not None:
+        return error("voting period ended", error_codename='voting_ended')
+
     # first of all, parse input data
     data = request.get_json(force=True, silent=True)
     if data is None:
@@ -185,6 +189,10 @@ def post_sms_auth():
     from tasks import send_sms
     from models import Voter, Message
 
+    election = current_app.config.get('AGORA_ELECTION_DATA', '')['election']
+    if election['voting_ends_at_date'] is not None:
+        return error("voting period ended", error_codename='voting_ended')
+
     # first of all, parse input data
     data = request.get_json(force=True, silent=True)
     if data is None:
@@ -280,6 +288,10 @@ def post_notify_vote():
     '''
     from tasks import send_sms
     from models import Voter, Message
+
+    election = current_app.config.get('AGORA_ELECTION_DATA', '')['election']
+    if election['voting_ends_at_date'] is not None:
+        return error("voting period ended", error_codename='voting_ended')
 
     # first of all, parse input data
     data = request.get_json(force=True, silent=True)

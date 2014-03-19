@@ -119,9 +119,34 @@
     </section>
   </script>
 
+
+  <script type="text/underscore-template" id="template-approval-results-table-view">
+    <h2>Pregunta: <%- question %></h2>
+    <p>Resultados en bruto:</p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Candidato</th>
+          <th>Votos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for(var i = 0; i < answers.length; i++) { %>
+        <tr>
+          <td><%- (i +1) %></td>
+          <td><%- answers[i].value %></td>
+          <td><%- answers[i].total_count %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </script>
+
   <script type="text/underscore-template" id="template-candidates-approval-double-results-view">
     <div class="candidates-header cf">
         <h3>Lista de ganadores (en orden)</h3>
+        <h4><a href="#results-table">Tabla de resultados</a></h4>
     </div>
     <div class="candidates-wrapper container-fluid">
       <% for(var i = 0; i < election.result.counts[1].winners.length; i++) { %>

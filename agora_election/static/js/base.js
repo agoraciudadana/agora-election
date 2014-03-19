@@ -98,6 +98,7 @@
             'verify-vote': 'security_center',
             'verify-tally': 'security_center',
             "page/:name": 'page',
+            'results-table': 'results_table'
 
         },
 
@@ -152,6 +153,11 @@
         page: function(name) {
             this.removeCurrentView();
             app.current_view = new AE.PageView({name: name});
+        },
+
+        results_table: function() {
+            this.removeCurrentView()
+            app.current_view = new AE.ResultsTableView();
         }
     });
 
@@ -205,6 +211,35 @@
             var title = candidate.value;
             var body = this.tmplCandModalBody(candidate);
             app.modal_view.render(candidate.value, body, "");
+        }
+    });
+
+    /**
+     * Results Table view - renders the tables with the results for each
+     * tallied question
+     */
+    AE.ResultsTableView = Backbone.View.extend({
+        el: "#render-view-canvas",
+
+        initialize: function() {
+            this.template = _.template($("#template-home-view").html());
+            this.tmplApprovalTable = _.template($("#template-approval-results-table-view").html());
+            this.render();
+        },
+
+        render: function() {
+            this.$el.html(this.template(app_data));
+            for (var i = 0; i < app_data.election.result.counts.length; i++) {
+                var question = app_data.election.result.counts[i];
+                question.answers = _.sortBy(question.answers, function (a) {
+                    return -a.total_count;
+                });
+                if (question.tally_type == "APPROVAL") {
+                    this.$el.find("#candidates-list").append(this.tmplApprovalTable(question));
+                }
+            }
+            this.delegateEvents();
+            return this;
         }
     });
 
