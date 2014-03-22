@@ -171,6 +171,16 @@
         return null;
     };
 
+    AE.getYoutubeEmbedUrl = function(urls) {
+        var baseUrl = AE.findUrlByTitle(urls, "Youtube").url;
+        var rx = /[^?]\?(.+\&)?v=([a-zA-Z0-9]+)(&.+)?/;
+        if (!rx.test()) {
+            return;
+        }
+        var urlCode = rx.exec(baseUrl)[1];
+        return "//www.youtube.com/embed/" + urlCode + "?autoplay=1&referrer=" + app_data.parent_site.name;
+    };
+
     /**
      * Home view - just renders the home page template with the app_data
      */

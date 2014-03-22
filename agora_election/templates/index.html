@@ -70,7 +70,7 @@
     <section class="feature-block cf">
       <div class="shadow-wrapper container-fluid"><div class="row">
         <div class="campaign-excerpt col-xs-12 col-sm-7">
-          <p><%- election.description %></p>
+          <p><%= election.description %></p>
           <% if (election.voting_ends_at_date == null) { %>
             <a href="#identify" class="btn-vote btn-dark">Vota</a>
           <% } %>
@@ -206,6 +206,11 @@
                   <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
                     <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
                       Facebook
+                    </a>
+                  <% } %>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Youtube") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Youtube").url %>" target="_blank" alt="Facebook">
+                      Youtube
                     </a>
                   <% } %>
                 </div>
@@ -461,6 +466,11 @@
     <img class="cand-img" src="<%- media_url %>" alt="<%- value %>" />
     <div class="cf"></div>
     <h3>Presentación y motivos</h3>
+    <% if (AE.findUrlByTitle(urls, "Youtube") != null) { %>
+      <embed id="youtubeVideo" type="text/html" with="640" height="390"
+             src="//www.youtube.com/embed/<%- AE.getYoutubeEmbedUrl(urls) %>">
+      </embed>
+    <% } %>
     <p><%= details %></p>
   </script>
 
