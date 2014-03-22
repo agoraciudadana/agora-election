@@ -125,7 +125,7 @@ body {
     font-weight: 300;
     text-align: justify;
     padding: 1em 2em 0 2em;
-    font-size: 1.5em;
+    font-size: 1.4em;
 }
 
 .extra-info {
@@ -511,7 +511,7 @@ table.table td.winner {
     }
 
     .campaign-excerpt {
-        font-size: 1.5em;
+        font-size: 1.4em;
     }
 }
 
