@@ -404,7 +404,7 @@
             }
 
             if (!above_age) {
-                this.setError("#above-age", "Debes ser mayor de edad para votar");
+                this.setError("#above-age", "Debes ser mayor de 16 años para votar");
             }
 
             if (!accept_conditions) {
