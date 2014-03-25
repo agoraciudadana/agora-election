@@ -85,7 +85,7 @@ def config():
         extra_data_json =  requests.get(election_url + "extra_data/",
                                         verify=False).json()
     else:
-        with open(fname, 'r', encoding="utf-8") as f:
+        with open(election_url, 'r', encoding="utf-8") as f:
             election_json = json.loads(f.read())
             # NOTE: do not support extra_data in this mode
             extra_data_json = dict()
