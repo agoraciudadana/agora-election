@@ -77,6 +77,22 @@ def config():
         app_flask.config.from_envvar('AGORA_ELECTION_SETTINGS', silent=False)
 
     # an optimization
+    election_url = app_flask.config['AGORA_ELECTION_DATA_URL']
+
+    if election_url.startswith("http"):
+        import requests
+        election_json = requests.get(election_url, verify=False).json()
+        extra_data_json =  requests.get(election_url + "extra_data/",
+                                        verify=False).json()
+    else:
+        with open(fname, 'r', encoding="utf-8") as f:
+            election_json = json.loads(f.read())
+            # NOTE: do not support extra_data in this mode
+            extra_data_json = dict()
+
+    edata = app_flask.config.get('AGORA_ELECTION_DATA', {})
+    edata['election'] = election_json
+    edata['election_extra_data'] = extra_data_json
     app_flask.config['AGORA_ELECTION_DATA_STR'] = Markup(json.dumps(
         app_flask.config.get('AGORA_ELECTION_DATA', {})))
 

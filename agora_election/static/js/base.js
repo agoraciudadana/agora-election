@@ -75,7 +75,7 @@
 
         // process app_data
         var rx = /^(https?:\/\/[^/]+)\/[^/]+\/[^/]+\/election\//
-        app_data.election.base_url = rx.exec(app_data.election.url)[1];
+        app_data.election.base_url = rx.exec(app_data.url)[1];
 
         // Initiate the router
         app.router = new AE.Router();
@@ -156,7 +156,7 @@
         },
 
         results_table: function() {
-            this.removeCurrentView()
+            this.removeCurrentView();
             app.current_view = new AE.ResultsTableView();
         }
     });
@@ -195,15 +195,19 @@
             this.template = _.template($("#template-home-view").html());
             if (app_data.election.tally_released_at_date == null) {
                 this.tmplCandidates = _.template($("#template-candidates-list-view").html());
-            } else {
+            } else if (app_data.election.questions[0].tally_type == "APPROVAL") {
                 this.tmplCandidates = _.template($("#template-candidates-approval-double-results-view").html());
+            } else if (app_data.election.questions[0].tally_type == "MEEK-STV") {
+                this.tmplCandidates = _.template($("#template-candidates-stv-results-view").html());
             }
             this.tmplCandModalBody = _.template($("#template-candidate-modal-body").html());
             this.render();
         },
 
         render: function() {
-            if (app_data.election.tally_released_at_date == null) {
+            if (app_data.election.tally_released_at_date == null &&
+                app_data.election.questions[0].randomize_answer_order)
+            {
                 app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
             }
             this.$el.html(this.template(app_data));
@@ -234,6 +238,7 @@
         initialize: function() {
             this.template = _.template($("#template-home-view").html());
             this.tmplApprovalTable = _.template($("#template-approval-results-table-view").html());
+            this.tmplSTVTable = _.template($("#template-stv-results-table-view").html());
             this.render();
         },
 
@@ -241,11 +246,19 @@
             this.$el.html(this.template(app_data));
             for (var i = 0; i < app_data.election.result.counts.length; i++) {
                 var question = app_data.election.result.counts[i];
-                question.answers = _.sortBy(question.answers, function (a) {
-                    return -a.total_count;
-                });
-                if (question.tally_type == "APPROVAL") {
+                if (question.tally_type == "APPROVAL")
+                {
+                    question.answers = _.sortBy(question.answers, function (a) {
+                        return -a.total_count;
+                    });
                     this.$el.find("#candidates-list").append(this.tmplApprovalTable(question));
+                } else if (question.tally_type == "MEEK-STV")
+                {
+                    var data = {
+                        q: question,
+                        q_tally: app_data.election_extra_data.tally_log[i]
+                    };
+                    this.$el.find("#candidates-list").append(this.tmplSTVTable(data));
                 }
             }
             this.delegateEvents();
@@ -654,7 +667,7 @@
                     'para que podamos reproducir y arreglar el problema.', false);
                     return;
                 }
-                var url = app_data.election.url + "/vote?message=" + encodeURIComponent(data.message) + "&sha1_hmac=" + encodeURIComponent(data.sha1_hmac);
+                var url = app_data.url + "/vote?message=" + encodeURIComponent(data.message) + "&sha1_hmac=" + encodeURIComponent(data.sha1_hmac);
                 document.location.href=url;
             })
             .fail(this.processError);

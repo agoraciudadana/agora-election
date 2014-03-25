@@ -54,7 +54,7 @@ body {
 }
 
 #header .headlines h2 {
-    color: rgb(140, 69, 147);
+    color: #DF4917;
     letter-spacing: 0.2rem;
     display: block;
     clear: both;
@@ -81,7 +81,7 @@ body {
 /* feature-block */
 
 .feature-block {
-    background-color: #8C4593;
+    background-color: rgb(235, 124, 32);
     color: white;
     width: 100%;
     display: block;
@@ -179,8 +179,8 @@ body {
 .btn-light {
     color: white !important;
     font-weight: 400;
-    box-shadow: 0px 0px 0px 3px #8C4593;
-    background-color: #8C4593;
+    box-shadow: 0px 0px 0px 3px rgb(39, 53, 53);
+    background-color: rgb(39, 53, 53);
     font-size: 1.5em;
     line-height: 1.6em;
     text-align: center;
@@ -198,7 +198,7 @@ body {
 }
 
 .btn-light:hover {
-    color: #8C4593 !important;
+    color: rgb(39, 53, 53) !important;
     text-decoration: none;
     background-color: transparent;
     border-color: transparent;
@@ -299,12 +299,12 @@ body {
 
 .candidate-item .info-points {
     padding: 0;
-    color: #8C4593;
+    color: #EB7C20;
 }
 
 .candidate-item .info-points a {
     display: block;
-    color: #8C4593;
+    color: #EB7C20;
     clear: both;
     width: 100%;
 }

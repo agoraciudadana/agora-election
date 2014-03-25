@@ -55,7 +55,7 @@
         </div>
 
         <section class="footer cr">
-          <a href="//www.podemos.info" target="_blank" alt="Podemos portada">www.podemos.info</a> | <a href="#contact">Contacta</a>
+          <a href="<%- parent_site.url %>" target="_blank" alt="Podemos portada"><%- parent_site.name %></a> | <a href="#contact">Contacta</a>
           <% for (var i = 0; i < static_pages.length; i++) { %>
            | <a href="#page/<%- static_pages[i].name %>"><%- static_pages[i].title %></a>
           <% } %>
@@ -82,7 +82,11 @@
           </div>
           <div class="featured-item">
             <strong><%- election.questions[0].answers.length %></strong>
-            <i>Candidatos</i>
+            <% if (!candidates || candidates != "not_primary") { %>
+              <i>Candidatos</i>
+            <% } else { %>
+              <i>Opciones</i>
+            <% } %>
           </div>
           <div class="featured-item">
             <strong><%- end_voting %></strong>
@@ -127,7 +131,11 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Candidato</th>
+          <% if (!candidates || candidates != "not_primary") { %>
+            <th>Candidato</th>
+          <% } else { %>
+            <th>Opción</th>
+          <% } %>
           <th>Votos</th>
         </tr>
       </thead>
@@ -146,6 +154,51 @@
         </tr>
         <% } %>
       </tbody>
+    </table>
+  </script>
+
+  <script type="text/underscore-template" id="template-stv-results-table-view">
+    <h2>Pregunta: <%- q.question %></h2>
+    <p>Resultados en bruto:</p>
+    <div class="clear"></clear>
+    <table class="question-stv table">
+        <thead><tr>
+            <th>Opciones</th>
+            <% for(var j = 0; j < q_tally.iterations.length; j++) { %>
+            <th>
+                Ronda nº <%= q_tally.iterations[j].round_stage %>
+            </th>
+            <% } %>
+            <th>
+                Final
+            </th>
+        </tr></thead>
+        <tbody>
+            <% for(var j = 0; j < q.answers.length; j++) { %>
+                <tr>
+                    <td class="candidate">
+                    <% if (q_tally.winners.indexOf(q.answers[j].value) != -1) { %>
+                        <strong><%= q.answers[j].value %></strong>
+                    <% } else { %>
+                        <%= q.answers[j].value %>
+                    <% } %>
+                    </td>
+                    <% for (var k = 0; k < q_tally.iterations.length; k++) { %>
+                        <td class="<%= q_tally.iterations[k].candidates[j].status %>">
+                            <%= parseFloat(q_tally.iterations[k].candidates[j].count) %>
+                        </td>
+                    <% } %>
+                    <% if (q_tally.winners.indexOf(q.answers[j].value) != -1) { %>
+                        <td class="last won">
+                            Ganador
+                        </td>
+                    <% } else { %>
+                        <td class="last">
+                        </td>
+                    <% } %>
+                </tr>
+            <% } %>
+        </tbody>
     </table>
   </script>
 
@@ -227,9 +280,76 @@
     </div>
   </script>
 
+  <script type="text/underscore-template" id="template-candidates-stv-results-view">
+    <div class="candidates-header cf">
+        <h3>Lista de ganadores (en orden)</h3>
+        <h4><a href="#results-table">Tabla de resultados</a></h4>
+    </div>
+    <div class="candidates-wrapper container-fluid">
+      <% for(var i = 0; i < election.result.counts[0].winners.length; i++) { %>
+        <% if (i > 1 && i % 2 == 0) { %>
+          </div>
+          <div class="candidates-wrapper container-fluid">
+        <%  }
+            var winner_name = election.result.counts[0].winners[i];
+
+            var candidate = AE.getCandidateCount(
+              winner_name,
+              election.questions[0].answers);
+        %>
+        <div class="col-xs-12 col-sm-6 candidate-item">
+          <div class="cf">
+            <div class="description">
+              <h3><% if (election.tally_released_at_date != null) { %><%- (i + 1) %>. <% } %><%- candidate.value %></h3>
+              <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
+              <div class="container-fluid info-points">
+                <div class="col-xs-7">
+                  <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
+                    Presentación y motivos
+                  </a>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
+                      Web
+                    </a>
+                  <% } %>
+                </div>
+                <div class="col-xs-5">
+                  <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
+                      Twitter
+                    </a>
+                  <% } %>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Facebook") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Facebook").url %>" target="_blank" alt="Facebook">
+                      Facebook
+                    </a>
+                  <% } %>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Youtube") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Youtube").url %>" target="_blank" alt="Facebook">
+                      Youtube
+                    </a>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+            <% if (candidate.media_url.length > 0) { %>
+              <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+            <% } else { %>
+              <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </script>
+
   <script type="text/underscore-template" id="template-candidates-list-view">
     <div class="candidates-header cf">
-        <h3>Candidaturas</h3>
+        <% if (!candidates || candidates != "not_primary") { %>
+          <h3>Candidaturas</h3>
+        <% } else { %>
+          <h3>Opciones</h3>
+        <% } %>
         <h4>En orden aleatorio</h4>
     </div>
     <div class="candidates-wrapper container-fluid">

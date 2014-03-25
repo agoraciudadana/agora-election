@@ -53,10 +53,6 @@ AGORA_SHARED_SECRET_KEY = "<shared key>"
 
 ########### data
 
-def get_json(fname):
-    with open(fname, 'r', encoding="utf-8") as f:
-        return json.loads(f.read())
-
 # list of static pages, which should be .json files available in the current
 # directory. Example:
 #STATIC_PAGES = [
@@ -73,13 +69,15 @@ def get_json(fname):
 #]
 STATIC_PAGES = []
 
+AGORA_ELECTION_DATA_URL = 'https://local.dev/api/v1/election/115/'
+
 AGORA_ELECTION_DATA = dict(
     parent_site=dict(
         name="www.podemos.info",
         url="//www.podemos.info",
     ),
-    election=get_json('election.json'),
     subtitle="Una candidatura popular y ciudadana",
+    url="https://local.dev/edulix/hola/election/hola5/vote",
     start_voting="20 marzo, 10:00",
     end_voting="27 marzo, 10:00",
     num_votes="0",
