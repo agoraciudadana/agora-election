@@ -28,6 +28,7 @@
   <script type="text/javascript" src="{{ static_path }}/libs/backbone-1.1.2/backbone-min.js"></script>
   <script type="text/javascript" src="{{ static_path }}/libs/bootstrap-3.1.1/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="{{ static_path }}/libs/jquery-shuffle/jquery-shuffle.js"></script>
+  <script type="text/javascript" src="{{ static_path }}/libs/jquery-lazyload/jquery.lazyload.min.js"></script>
 
   <!-- dynamic data here -->
     <script>
@@ -270,7 +271,7 @@
               </div>
             </div>
             <% if (candidate.media_url.length > 0) { %>
-              <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+              <img class="cand-img" data-original="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
             <% } else { %>
               <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
             <% } %>
@@ -669,4 +670,10 @@
 
   <!-- real ours js code -->
   <script type="text/javascript" src="{{ static_path }}/js/base.js"></script>
+  <!-- preload images -->
+  <script type="text/javascript">
+    $(function() {
+      $("img.cand-img").lazyload();
+    });
+  </script>
 </body>
