@@ -256,6 +256,7 @@
                     question.answers = _.sortBy(question.answers, function (a) {
                         return -a.total_count;
                     });
+                    question.candidates = app_data.candidates;
                     this.$el.find("#candidates-list").append(this.tmplApprovalTable(question));
                 } else if (question.tally_type == "MEEK-STV")
                 {

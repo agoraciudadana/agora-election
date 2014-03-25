@@ -219,7 +219,7 @@
               winner_name,
               election.result.counts[0].answers);
 
-            var candidate_first = AE.getCandidateCount(
+            var candidate2 = AE.getCandidateCount(
               winner_name,
               election.result.counts[1].answers);
         %>
@@ -230,13 +230,13 @@
               <div class="question-result-name">
                 1º pregunta
               <div class="question-result-value">
-                <%- candidate_first.total_count %> votos
+                <%- candidate.total_count %> votos
               </div>
               </div>
               <div class="question-result-name last">
                 2º pregunta
               <div class="question-result-value">
-                <%- candidate.total_count %> votos
+                <%- candidate2.total_count %> votos
               </div>
               </div>
               <div class="container-fluid info-points">
