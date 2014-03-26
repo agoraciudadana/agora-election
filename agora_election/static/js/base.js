@@ -217,6 +217,7 @@
             }
             this.$el.html(this.template(app_data));
             this.$el.find("#candidates-list").html(this.tmplCandidates(app_data));
+            this.$el.find("img.cand-img").lazyload();
             this.delegateEvents();
             return this;
         },
