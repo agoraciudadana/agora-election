@@ -179,7 +179,7 @@
             var index = baseUrl.indexOf("youtu.be/") + 9;
             urlCode = baseUrl.substr(index);
         } else if (rx.test(baseUrl)) {
-            urlCode = rx.exec(baseUrl)[1];
+            urlCode = rx.exec(baseUrl)[2];
         } else {
             return;
         }
@@ -212,8 +212,8 @@
 
         render: function() {
             if (app_data.election.tally_released_at_date == null &&
-                app_data.election.questions[0].randomize_answer_order &&
-                app_data.election.questions[0].tally_type != "APPROVAL")
+                (app_data.election.questions[0].randomize_answer_order ||
+                app_data.election.questions[0].tally_type == "APPROVAL"))
             {
                 app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
             }
