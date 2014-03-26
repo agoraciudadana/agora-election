@@ -32,6 +32,13 @@ from crypto import constant_time_compare, salted_hmac, get_random_string, hash_t
 api = Blueprint('api', __name__)
 index = Blueprint('index', __name__)
 
+def get_ip(request):
+    getter = current_app.config.get('REAL_IP_GETTER', 'remote_addr')
+    if getter == 'remote_addr':
+        return request.remote_addr
+    else:
+        return request.headers[getter]
+
 def token_generator():
     '''
     Generate an user token string. 8 alfanumeric characters. We do not allow
@@ -97,7 +104,7 @@ def post_register():
     # do a deeper input check: check that the ip is not blacklisted, or that
     # the tlf has already voted..
     set_serializable()
-    check_status = check_registration_pipeline(request.remote_addr, data)
+    check_status = check_registration_pipeline(get_ip(request), data)
     if  check_status is not True:
         return check_status
 
@@ -116,7 +123,7 @@ def post_register():
     token_hash = hash_token(token)
     msg = Message(
         tlf=data["tlf"],
-        ip=request.remote_addr,
+        ip=get_ip(request),
         lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
         token=token_hash,
         status=Message.STATUS_QUEUED,
@@ -125,7 +132,7 @@ def post_register():
     # create voter and send sms
     voter = Voter(
         election_id=curr_eid,
-        ip=request.remote_addr,
+        ip=get_ip(request),
         first_name=data["first_name"],
         last_name=data["last_name"],
         email=data["first_name"],
@@ -385,7 +392,7 @@ def post_contact():
                        "%(ip)s): \n%(body)s",
                        name=data['name'],
                        tlf=data['tlf'],
-                       ip=request.remote_addr,
+                       ip=get_ip(request),
                        email=data['email'],
                        body=data['body'])
     app_mail.send(msg)
