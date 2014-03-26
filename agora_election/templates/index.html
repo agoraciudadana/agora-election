@@ -376,10 +376,15 @@
                       Web
                     </a>
                   <% } %>
+                  <% if (AE.findUrlByTitle(candidate.urls, "Youtube") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Youtube").url %>" target="_blank" alt="Youtube">
+                      Youtube
+                    </a>
+                  <% } %>
                 </div>
                 <div class="col-xs-5">
-                  <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
-                    <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
+                  <% if (AE.findUrlByTitle(candidate.urls, "Twitter") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Twitter").url %>" target="_blank" alt="Twitter">
                       Twitter
                     </a>
                   <% } %>
