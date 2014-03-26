@@ -252,8 +252,8 @@
                   <% } %>
                 </div>
                 <div class="col-xs-5">
-                  <% if (AE.findUrlByTitle(candidate.urls, "@") != null) { %>
-                    <a href="<%- AE.findUrlByTitle(candidate.urls, "@").url %>" target="_blank" alt="<%- AE.findUrlByTitle(candidate.urls, "@").title %>">
+                  <% if (AE.findUrlByTitle(candidate.urls, "Twitter") != null) { %>
+                    <a href="<%- AE.findUrlByTitle(candidate.urls, "Twitter").url %>" target="_blank" alt="Twitter">
                       Twitter
                     </a>
                   <% } %>
@@ -588,7 +588,7 @@
     <div class="cf"></div>
     <h3>Presentación y motivos</h3>
     <% if (AE.findUrlByTitle(urls, "Youtube") != null) { %>
-      <iframe id="youtubeVideo" with="640" frameborder="0" allowfullscreen
+      <iframe id="youtubeVideo" with="640" height="200" frameborder="0" allowfullscreen
         src="<%- AE.getYoutubeEmbedUrl(urls) %>">
       </iframe>
     <% } %>
