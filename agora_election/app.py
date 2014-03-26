@@ -48,7 +48,7 @@ class App(Flask):
 app_flask = App(__name__)
 babel = app_flask.babel = Babel(app_flask)
 db = app_flask.db = SQLAlchemy(app_flask)
-app_mail = app_flask.mail = Mail(app_flask)
+app_mail = app_flask.mail = Mail()
 app = app_flask.celery = Celery("app")
 app_captcha = Captcha()
 
@@ -98,6 +98,7 @@ def config():
 
     # config captcha
     app_captcha.init_app(app_flask)
+    app_mail.init_app(app_flask)
 
 def main():
     parser = argparse.ArgumentParser()
