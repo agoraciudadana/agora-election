@@ -588,9 +588,8 @@
     <div class="cf"></div>
     <h3>Presentación y motivos</h3>
     <% if (AE.findUrlByTitle(urls, "Youtube") != null) { %>
-      <iframe id="youtubeVideo" with="640" height="390"
-        src="<%- AE.getYoutubeEmbedUrl(urls) %>"
-        frameborder="0" allowfullscreen>
+      <iframe id="youtubeVideo" with="640" frameborder="0" allowfullscreen
+        src="<%- AE.getYoutubeEmbedUrl(urls) %>">
       </iframe>
     <% } %>
     <p><%= details %></p>
