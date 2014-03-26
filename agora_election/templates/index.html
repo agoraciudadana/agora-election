@@ -334,7 +334,7 @@
               </div>
             </div>
             <% if (candidate.media_url.length > 0) { %>
-              <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+              <img class="cand-img" data-original="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
             <% } else { %>
               <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
             <% } %>
@@ -392,7 +392,7 @@
               </div>
             </div>
             <% if (candidate.media_url.length > 0) { %>
-              <img class="cand-img" src="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+              <img class="cand-img" data-original="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
             <% } else { %>
               <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
             <% } %>
