@@ -174,11 +174,12 @@
     AE.getYoutubeEmbedUrl = function(urls) {
         var baseUrl = AE.findUrlByTitle(urls, "Youtube").url;
         var rx = /[^?]\?(.+\&)?v=([a-zA-Z0-9]+)(&.+)?/;
+        var urlCode = "";
         if (baseUrl.indexOf("youtu.be/") != -1) {
             var index = baseUrl.indexOf("youtu.be/") + 9;
-            var urlCode = baseUrl.substr(index);
+            urlCode = baseUrl.substr(index);
         } else if (rx.test(baseUrl)) {
-            var urlCode = rx.exec(baseUrl)[1];
+            urlCode = rx.exec(baseUrl)[1];
         } else {
             return;
         }
@@ -211,7 +212,8 @@
 
         render: function() {
             if (app_data.election.tally_released_at_date == null &&
-                app_data.election.questions[0].randomize_answer_order)
+                app_data.election.questions[0].randomize_answer_order &&
+                app_data.election.questions[0].tally_type != "APPROVAL")
             {
                 app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
             }
