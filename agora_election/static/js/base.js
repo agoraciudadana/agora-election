@@ -173,7 +173,7 @@
 
     AE.getYoutubeEmbedUrl = function(urls) {
         var baseUrl = AE.findUrlByTitle(urls, "Youtube").url;
-        var rx = /[^?]\?(.+\&)?v=([a-zA-Z0-9]+)(&.+)?/;
+        var rx = /[^?]\?(.+\&)?v=([-a-zA-Z0-9_]+)(&.+)?/;
         var urlCode = "";
         if (baseUrl.indexOf("youtu.be/") != -1) {
             var index = baseUrl.indexOf("youtu.be/") + 9;
