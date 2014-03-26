@@ -177,13 +177,13 @@
         if (baseUrl.indexOf("youtu.be/") != -1) {
             var index = baseUrl.indexOf("youtu.be/") + 9;
             var urlCode = baseUrl.substr(index);
-        } else if (rx.test()) {
+        } else if (rx.test(baseUrl)) {
             var urlCode = rx.exec(baseUrl)[1];
         } else {
             return;
         }
 
-        return "//www.youtube.com/embed/" + urlCode + "?autoplay=1&referrer=" + app_data.parent_site.name;
+        return "//www.youtube.com/embed/" + urlCode + "?referrer=" + app_data.parent_site.name;
     };
 
     /**
