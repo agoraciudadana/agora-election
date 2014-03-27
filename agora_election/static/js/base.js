@@ -50,14 +50,14 @@
 
     Checker.dni = function(v) {
         var regex;
-        regex = /^X?[0-9]{8}[A-Za-z]{1}$/;
+        regex = /^[xX]?[0-9]{8}[A-Za-z]{1}$/;
 
-        if (!regex.test(v)) {
+        if (!regex.test(v.toUpperCase())) {
             return false;
         }
 
         var v2 = v;
-        if (v.substr(0,1) == "X") {
+        if (v.substr(0,1).toUpperCase() == "X") {
             v2 = v.substr(1);
         }
 
