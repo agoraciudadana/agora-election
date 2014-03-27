@@ -394,7 +394,7 @@ def post_contact():
                        tlf=data['tlf'],
                        ip=get_ip(request),
                        email=data['email'],
-                       body=data['body'])
+                       body=data['body']).encode('ascii', 'ignore')
     app_mail.send(msg)
 
     return make_response("", 200)
