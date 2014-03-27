@@ -469,6 +469,9 @@
          * Refresh the captcha image.
          */
         getCaptcha: function(force_refresh) {
+            if (!app_data.register_shows_captcha) {
+                return;
+            }
             var done_func = function(data) {
                 app_data.captcha_key = data.key;
                 app_data.captcha_image_url = data.image_url;
