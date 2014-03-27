@@ -346,7 +346,7 @@ def post_notify_vote():
             unset_serializable()
             break
         except:
-            pass
+            db.session.rollback()
 
     return make_response("", 200)
 
