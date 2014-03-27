@@ -50,7 +50,7 @@
 
     Checker.dni = function(v) {
         var regex;
-        regex = /^[xX]?[0-9]{8}[A-Za-z]{1}$/;
+        regex = /^[xX]?[0-9]{7,9}[A-Za-z]{1}$/;
 
         if (!regex.test(v.toUpperCase())) {
             return false;
@@ -64,8 +64,8 @@
         var dni = parseInt(v2);
 
         var mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
-        var digits = v2.substring(0, 8);
-        var letter = v2.substring(8, 9).toUpperCase();
+        var digits = v2.substring(0, v2.length - 1);
+        var letter = v2.substring(v2.length -1 , v2.length).toUpperCase();
 
         var expected = mod_letters.charAt(dni % 23);
 
