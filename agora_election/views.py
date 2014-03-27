@@ -316,30 +316,38 @@ def post_notify_vote():
 
     # check that voter has not voted
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
-    set_serializable()
-    voters = db.session.query(Voter)\
-        .filter(Voter.election_id == curr_eid,
-                Voter.status == Voter.STATUS_AUTHENTICATED,
-                Voter.is_active == True,
-                Voter.id == int(data['identifier']))
-    if voters.count() == 0:
-        unset_serializable()
-        return error("Invalid identifier", error_codename="invalid_id")
-    voter = voters.first()
+    max_tries = 3
+    num_tries = 0
+    for i in range(max_tries):
+        try:
+            set_serializable()
+            voters = db.session.query(Voter)\
+                .filter(Voter.election_id == curr_eid,
+                        Voter.status == Voter.STATUS_AUTHENTICATED,
+                        Voter.is_active == True,
+                        Voter.id == int(data['identifier']))
+            if voters.count() == 0:
+                unset_serializable()
+                return error("Invalid identifier", error_codename="invalid_id")
+            voter = voters.first()
 
-    # check token
-    key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
-    hmac = salted_hmac(key, data['identifier'], "").hexdigest()
-    if not constant_time_compare(data["sha1_hmac"], hmac):
-        unset_serializable()
-        return error("Invalid hmac", error_codename="invalid_hmac")
+            # check token
+            key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
+            hmac = salted_hmac(key, data['identifier'], "").hexdigest()
+            if not constant_time_compare(data["sha1_hmac"], hmac):
+                unset_serializable()
+                return error("Invalid hmac", error_codename="invalid_hmac")
 
-    voter.status = Voter.STATUS_VOTED
-    voter.modified = datetime.utcnow()
-    db.session.add(voter)
-    db.session.commit()
-    # okey now we have finished the critical serialized path, we can breath now
-    unset_serializable()
+            voter.status = Voter.STATUS_VOTED
+            voter.modified = datetime.utcnow()
+            db.session.add(voter)
+            db.session.commit()
+            # okey now we have finished the critical serialized path, we can breath now
+            unset_serializable()
+            break
+        except:
+            pass
+
     return make_response("", 200)
 
 
