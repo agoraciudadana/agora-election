@@ -49,15 +49,15 @@
     };
 
     Checker.dni = function(v) {
-        var regex;
-        regex = /^[xX]?[0-9]{7,9}[A-Za-z]{1}$/;
+        var regex = /^[A-Z]?[0-9]{7,8}[A-Z]$/;
+        var letter_rx = /^[A-Z]$/;
+        var v2 = v.toUpperCase();
 
-        if (!regex.test(v.toUpperCase())) {
+        if (!regex.test(v2)) {
             return false;
         }
 
-        var v2 = v;
-        if (v.substr(0,1).toUpperCase() == "X") {
+        if (letter_rx.test(v.substr(0,1))) {
             v2 = v.substr(1);
         }
 
@@ -65,7 +65,7 @@
 
         var mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
         var digits = v2.substring(0, v2.length - 1);
-        var letter = v2.substring(v2.length -1 , v2.length).toUpperCase();
+        var letter = v2.substring(v2.length -1 , v2.length);
 
         var expected = mod_letters.charAt(dni % 23);
 

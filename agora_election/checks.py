@@ -33,7 +33,8 @@ EMAIL_RX = re.compile(
     r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)$)'  # domain
     r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)  # literal form, ipv4 address (SMTP 4.1.3)
 
-DNI_RX = re.compile("X?[0-9]{7,9}[A-Za-z]{1}", re.IGNORECASE)
+DNI_RX = re.compile("[A-Z]?[0-9]{7,8}[A-Z]", re.IGNORECASE)
+LETTER_RX = re.compile("[A-Z]", re.IGNORECASE)
 
 def error(message="", status=400, field=None, error_codename=None):
     '''
@@ -95,10 +96,10 @@ def dni_constraint(val):
         return False
 
     val2 = val.upper()
-    if not DNI_RX.match(val):
+    if not DNI_RX.match(val2):
         return False
 
-    if val2[0] == "X":
+    if LETTER_RX.match(val2[0]):
         val2 = val2[1:]
 
     mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
