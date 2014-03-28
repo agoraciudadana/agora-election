@@ -100,7 +100,12 @@ def dni_constraint(val):
         return False
 
     if LETTER_RX.match(val2[0]):
+        nie_letter = val2[0]
         val2 = val2[1:]
+        if nie_letter == 'Y':
+            val2 = "1" + val2
+        elif nie_letter == 'Z':
+            val2 = "2" + val2
 
     mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
     digits = val2[:-1]

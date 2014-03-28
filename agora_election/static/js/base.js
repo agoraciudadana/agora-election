@@ -58,7 +58,13 @@
         }
 
         if (letter_rx.test(v.substr(0,1))) {
+            var nie_letter = v.substr(0,1);
             v2 = v.substr(1);
+            if (nie_letter == "Y") {
+                v2 = "1" + v2;
+            } else if (nie_letter == "Y") {
+                v2 = "2" + v2;
+            }
         }
 
         var dni = parseInt(v2);
