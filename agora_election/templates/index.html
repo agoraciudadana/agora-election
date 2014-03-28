@@ -475,7 +475,7 @@
           </div>
         <% } %>
         <div id="error-message"></div>
-        <button id="identify-action" class="btn btn-light btn-block">Identificarme</button>
+        <button type="button" id="identify-action" class="btn btn-light btn-block">Identificarme</button>
       </form>
       <div class="section-header col-xs-12 col-sm-6">
         <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes tener más de 16 años y tener un móvil con teléfono español para votar. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
@@ -514,7 +514,7 @@
           <p class="help-block">Ten paciencia, tardará unos segundos en llegarte el código por SMS al móvil.</p>
         </div>
         <div id="error-message"></div>
-        <button id="verify-action" class="btn btn-light btn-block">Verificar código SMS</button>
+        <button type="button" id="verify-action" class="btn btn-light btn-block">Verificar código SMS</button>
       </form>
       <div class="section-header col-xs-12 col-sm-6">
         <p>En este segundo paso debes de introducir un código SMS que has debido recibir en tu teléfono móvil para que verifiquemos tu identidad y así puedas entrar a la cabina de votación. Si no te ha llegado el mensaje SMS</strong>, si aun no te lo hemos enviado, si ha caducado o si estás teniendo problemas, puedes probar a <a href="#identify">identificarte de nuevo</a>. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
@@ -555,7 +555,7 @@
           <p class="help-block">Obligatorio. Introduce los caracteres que veas en la imagen.</p>
         </div>
         <div id="error-message"></div>
-        <button id="send-message" class="btn btn-light btn-block">Contactar</button>
+        <button type="button" id="send-message" class="btn btn-light btn-block">Contactar</button>
       </form>
       <div class="section-header col-xs-12 col-sm-6">
         <p>Si has tenido algún problema en el proceso de votación, o si tienes alguna duda o consulta que hacernos, puedes contactar con nosotros a través de este formulario de contacto. También puedes hacerlo enviándonos un email a <a href="mailto:<%- contact.email %>" target="_blank"><%- contact.email %></a> o contáctanos por twitter en <a href="https://twitter.com/<%- contact.twitter_username %>" target="_blank">@<%- contact.twitter_username %></a>.</p>
@@ -630,7 +630,7 @@
               <p class="help-block">El localizador de tu voto, por ejemplo 78a319dbd699c5d6ff08ca08990b395e593bcb8282a7660417a50d0ee470503f</p>
             </div>
             <div id="error-message"></div>
-            <button id="verify-action" class="btn btn-light btn-block">
+            <button type="button" id="verify-action" class="btn btn-light btn-block">
               Comprobar mi voto
             </button>
             <div id="verify-result" class="hidden">
