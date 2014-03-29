@@ -212,7 +212,7 @@
         el: "#render-view-canvas",
 
         events: {
-            'click a.details': 'showDetails',
+            'click a.details': 'showDetails'
         },
 
         initialize: function() {
@@ -474,7 +474,7 @@
             var jqxhr = $.ajax("/api/v1/register/", {
                 data: JSON.stringify(inputData),
                 contentType : 'application/json',
-                type: 'POST',
+                type: 'POST'
             })
             .done(function(data) {
                 self.sendingFlag = false;
@@ -506,7 +506,7 @@
             }
             var jqxhr = $.ajax("/captcha/captcha_refresh/", {
                 contentType : 'application/json',
-                type: 'GET',
+                type: 'GET'
             })
             .done(done_func)
             .fail(function() {
@@ -684,7 +684,7 @@
             var jqxhr = $.ajax("/api/v1/sms_auth/", {
                 data: JSON.stringify(inputData),
                 contentType : 'application/json',
-                type: 'POST',
+                type: 'POST'
             })
             .done(function(data) {
                 try {
@@ -805,7 +805,7 @@
 
             var jqxhr = $.ajax("/captcha/captcha_refresh/", {
                 contentType : 'application/json',
-                type: 'GET',
+                type: 'GET'
             })
             .done(done_func)
             .fail(function() {
@@ -911,7 +911,7 @@
             var jqxhr = $.ajax("/api/v1/contact/", {
                 data: JSON.stringify(inputData),
                 contentType : 'application/json',
-                type: 'POST',
+                type: 'POST'
             })
             .done(function(data) {
                 console.log(data);
