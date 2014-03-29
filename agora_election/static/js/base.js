@@ -185,7 +185,7 @@
                 return results[i];
             }
         }
-        console.log("name = " + name + ", not found");
+        // console.log("name = " + name + ", not found");
         return null;
     };
 
@@ -510,7 +510,7 @@
             })
             .done(done_func)
             .fail(function() {
-                console.log("error refreshing captcha");
+                // console.log("error refreshing captcha");
             });
         },
 
@@ -524,7 +524,7 @@
         processError: function(jqXHR, textStatus) {
             var self = app.current_view;
             self.sendingFlag = false;
-            console.log("fail = " + jqXHR.responseText);
+            // console.log("fail = " + jqXHR.responseText);
             try {
                 var data = JSON.parse(jqXHR.responseText);
             } catch(e) {
@@ -712,7 +712,7 @@
         processError: function(jqXHR, textStatus) {
             var self = app.current_view;
             self.sendingFlag = false;
-            console.log("fail = " + jqXHR.responseText);
+            // console.log("fail = " + jqXHR.responseText);
             try {
                 var data = JSON.parse(jqXHR.responseText);
             } catch(e) {
@@ -809,7 +809,7 @@
             })
             .done(done_func)
             .fail(function() {
-                console.log("error refreshing captcha");
+                // console.log("error refreshing captcha");
             });
         },
 
@@ -914,7 +914,7 @@
                 type: 'POST'
             })
             .done(function(data) {
-                console.log(data);
+                // console.log(data);
                 self.sendingFlag = false;
                 app.router.navigate("mail-sent", {trigger: true});
             })
@@ -931,7 +931,7 @@
         processError: function(jqXHR, textStatus) {
             var self = app.current_view;
             self.sendingFlag = false;
-            console.log("fail = " + jqXHR.responseText);
+            // console.log("fail = " + jqXHR.responseText);
             try {
                 var data = JSON.parse(jqXHR.responseText);
             } catch(e) {
