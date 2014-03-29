@@ -23,6 +23,13 @@
     app.current_view = null;
     app.modal_dialog = null;
 
+     // ie8 fix
+    if(typeof String.prototype.trim !== 'function') {
+        String.prototype.trim = function() {
+            return this.replace(/^\s+|\s+$/g, '');
+        }
+    }
+
     var Checker = {};
     Checker.email = function(v) {
         var RFC822;
