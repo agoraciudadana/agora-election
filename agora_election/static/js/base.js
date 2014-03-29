@@ -67,7 +67,7 @@
             }
         }
 
-        var dni = parseInt(v2);
+        var dni = parseInt(v2, 10);
 
         var mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
         var digits = v2.substring(0, v2.length - 1);
@@ -389,7 +389,7 @@
             var email = $("#email").val().trim();
             var dni = $("#dni").val().trim();
             var tlf = $("#tlf").val().trim();
-            var postal_code = parseInt($("#postal-code").val().trim());
+            var postal_code = parseInt($("#postal-code").val().trim(), 10);
             var above_age = $("#above-age:checked").length == 1;
             var mail_updates = $("#receive-mail-updates:checked").length == 1;
             var accept_conditions = $("#accept-conditions:checked").length == 1;
