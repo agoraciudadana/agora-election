@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import random
+from functools import partial
 
 from flask import Blueprint, request, make_response, render_template, url_for
 from flask.ext.mail import Message as MailMessage
@@ -24,6 +26,8 @@ from flask.ext.babel import gettext, ngettext
 from flask.ext.captcha.models import CaptchaStore
 from flask import current_app
 from jinja2 import Markup
+
+from sqlalchemy.orm import exc as sa_exc
 
 from checks import *
 from app import db, app_mail
@@ -45,6 +49,64 @@ def token_generator():
     confusing characters: 0,O,I,1
     '''
     return get_random_string(8, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+
+def set_serializable():
+    # if using postgres, then we check concurrency
+    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
+        import psycopg2
+        # commit to separate everything in a new transaction
+        db.session.commit()
+        conn = db.session.bind.engine.connect().connection.connection
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
+
+def unset_serializable():
+    # if using postgres, then we check concurrency
+    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
+        import psycopg2
+        conn = db.session.bind.engine.connect().connection.connection
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED)
+
+def serializable_retry(func, max_num_retries=None):
+    '''
+    This decorator calls another function whose next commit will be serialized.
+    This might triggers a rollback. In that case, we will retry with some
+    increasing (5^n * random, where random goes from 0.5 to 1.5 and n starts
+    with 1) timing between retries, and fail after a max number of retries.
+    '''
+    def wrap(max_num_retries, *args, **kwargs):
+        if max_num_retries is None:
+            max_num_retries = current_app.config.get(
+                'MAX_NUM_SERIALIZED_RETRIES', 5)
+
+        retries = 1
+        initial_sleep_time = 5 # miliseconds
+
+        set_serializable()
+        while True:
+            try:
+                ret = func(*args, **kwargs)
+                break
+            except sa_exc.InvalidRequestError as e:
+                # only accept rollback related exception
+                if len(e.args) is 0 or not isinstance(e.args[0], str) or\
+                        'rollback' not in e.args[0]:
+                    raise e
+                db.session.rollback()
+                if retries > max_num_retries:
+                    unset_serializable()
+                    db.session.commit()
+                    raise e
+
+                retries += 1
+                usleep((initial_sleep_time**retries) * (random.random() + 0.5))
+
+        unset_serializable()
+        db.session.commit()
+        return ret
+
+    return partial(wrap, max_num_retries)
 
 @api.route('/register/', methods=['POST'])
 def post_register():
@@ -103,77 +165,66 @@ def post_register():
 
     # do a deeper input check: check that the ip is not blacklisted, or that
     # the tlf has already voted..
-    set_serializable()
-    check_status = check_registration_pipeline(get_ip(request), data)
-    if  check_status is not True:
-        return check_status
+    @serializable_retry
+    def critical_path():
+        check_status = check_registration_pipeline(get_ip(request), data)
+        if  check_status is not True:
+            return check_status
 
-    # disable older registration attempts for this tlf
-    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
-    old_voters = db.session.query(Voter)\
-        .filter(Voter.election_id == curr_eid,
-                Voter.tlf == data["tlf"],
-                Voter.is_active == True)
-    for ov in old_voters:
-        ov.is_active = False
-        db.session.add(ov)
+        # disable older registration attempts for this tlf
+        curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+        old_voters = db.session.query(Voter)\
+            .filter(Voter.election_id == curr_eid,
+                    Voter.tlf == data["tlf"],
+                    Voter.is_active == True)
+        for ov in old_voters:
+            ov.is_active = False
+            db.session.add(ov)
 
-    # create the message to be sent
-    token = token_generator()
-    token_hash = hash_token(token)
-    msg = Message(
-        tlf=data["tlf"],
-        ip=get_ip(request),
-        lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
-        token=token_hash,
-        status=Message.STATUS_QUEUED,
-    )
+        # create the message to be sent
+        token = token_generator()
+        token_hash = hash_token(token)
+        msg = Message(
+            tlf=data["tlf"],
+            ip=get_ip(request),
+            lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
+            token=token_hash,
+            status=Message.STATUS_QUEUED,
+        )
 
-    # create voter and send sms
-    voter = Voter(
-        election_id=curr_eid,
-        ip=get_ip(request),
-        first_name=data["first_name"],
-        last_name=data["last_name"],
-        email=data["first_name"],
-        tlf=data["tlf"],
-        postal_code=data["tlf"],
-        receive_mail_updates=data["receive_updates"],
-        lang_code=msg.lang_code,
-        status=Voter.STATUS_CREATED,
-        message=msg,
-        is_active=True,
-        dni=data["dni"].upper(),
-    )
+        # create voter and send sms
+        voter = Voter(
+            election_id=curr_eid,
+            ip=get_ip(request),
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            email=data["first_name"],
+            tlf=data["tlf"],
+            postal_code=data["tlf"],
+            receive_mail_updates=data["receive_updates"],
+            lang_code=msg.lang_code,
+            status=Voter.STATUS_CREATED,
+            message=msg,
+            is_active=True,
+            dni=data["dni"].upper(),
+        )
 
-    db.session.add(voter)
-    db.session.add(msg)
-    db.session.commit()
-    unset_serializable()
+        db.session.add(voter)
+        db.session.add(msg)
+        db.session.commit()
+        return msg, token
+    ret = critical_path()
+    if not isinstance(ret, tuple):
+        return ret
+
+    msg, token = ret
+
     send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=token),
         countdown=current_app.config.get('SMS_DELAY', 1),
         expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
 
 
     return make_response("", 200)
-
-def set_serializable():
-    # if using postgres, then we check concurrency
-    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
-        import psycopg2
-        # commit to separate everything in a new transaction
-        db.session.commit()
-        conn = db.session.bind.engine.connect().connection.connection
-        conn.set_isolation_level(
-            psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
-
-def unset_serializable():
-    # if using postgres, then we check concurrency
-    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
-        import psycopg2
-        conn = db.session.bind.engine.connect().connection.connection
-        conn.set_isolation_level(
-            psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED)
 
 @api.route('/sms_auth/', methods=['POST'])
 def post_sms_auth():
@@ -218,51 +269,53 @@ def post_sms_auth():
 
     # check that voter has not voted
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
-    set_serializable()
-    voters = db.session.query(Voter)\
-        .filter(Voter.election_id == curr_eid,
-                Voter.tlf == data["tlf"],
-                Voter.dni == data["dni"].upper(),
-                Voter.status == Voter.STATUS_SENT,
-                Voter.is_active == True)
-    if voters.count() == 0:
-        unset_serializable()
-        return error("Voter has not any sms", error_codename="sms_notsent")
-    voter = voters.first()
+    @serializable_retry
+    def critical_path():
+        voters = db.session.query(Voter)\
+            .filter(Voter.election_id == curr_eid,
+                    Voter.tlf == data["tlf"],
+                    Voter.dni == data["dni"].upper(),
+                    Voter.status == Voter.STATUS_SENT,
+                    Voter.is_active == True)
+        if voters.count() == 0:
+            return error("Voter has not any sms", error_codename="sms_notsent")
+        voter = voters.first()
 
-    # check token has not too many guesses or has expired
-    expire_time = current_app.config.get('SMS_TOKEN_EXPIRE_SECS', 60*10)
-    expire_dt = datetime.utcnow() - timedelta(seconds=expire_time)
+        # check token has not too many guesses or has expired
+        expire_time = current_app.config.get('SMS_TOKEN_EXPIRE_SECS', 60*10)
+        expire_dt = datetime.utcnow() - timedelta(seconds=expire_time)
 
-    if voter.token_guesses >= current_app.config.get("MAX_TOKEN_GUESSES", 5) or\
-            voter.message.created <= expire_dt:
-        return error("Voter provided invalid token, please try a new one",
-                     error_codename="need_new_token")
+        if voter.token_guesses >= current_app.config.get("MAX_TOKEN_GUESSES", 5) or\
+                voter.message.created <= expire_dt:
+            return error("Voter provided invalid token, please try a new one",
+                        error_codename="need_new_token")
 
 
-    token = data["token"].upper()
-    token_hash = hash_token(token)
+        token = data["token"].upper()
+        token_hash = hash_token(token)
 
-    # check token
-    if not constant_time_compare(token_hash, voter.message.token):
-        voter.token_guesses += 1
+        # check token
+        if not constant_time_compare(token_hash, voter.message.token):
+            voter.token_guesses += 1
+            voter.modified = datetime.utcnow()
+            db.session.add(voter)
+            db.session.commit()
+            return error("Voter provided invalid token", error_codename="invalid_token")
+
+        voter.status = Voter.STATUS_AUTHENTICATED
         voter.modified = datetime.utcnow()
         db.session.add(voter)
+
+        # invalidate other voters with same tlf
+        for v in voters[1:]:
+            v.is_active = False
+            db.session.add(v)
         db.session.commit()
-        unset_serializable()
-        return error("Voter provided invalid token", error_codename="invalid_token")
-
-    voter.status = Voter.STATUS_AUTHENTICATED
-    voter.modified = datetime.utcnow()
-    db.session.add(voter)
-
-    # invalidate other voters with same tlf
-    for v in voters[1:]:
-        v.is_active = False
-        db.session.add(v)
-    db.session.commit()
-    # okey now we have finished the critical serialized path, we can breath now
-    unset_serializable()
+        # okey now we have finished the critical serialized path, we can breath now
+        return voter
+    voter = critical_path()
+    if not isinstance(voter, Voter):
+        return voter
 
     message = "%d#%d" % (
         int(datetime.utcnow().timestamp()),
@@ -316,37 +369,32 @@ def post_notify_vote():
 
     # check that voter has not voted
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
-    max_tries = 3
-    num_tries = 0
-    for i in range(max_tries):
-        try:
-            set_serializable()
-            voters = db.session.query(Voter)\
-                .filter(Voter.election_id == curr_eid,
-                        Voter.status == Voter.STATUS_AUTHENTICATED,
-                        Voter.is_active == True,
-                        Voter.id == int(data['identifier']))
-            if voters.count() == 0:
-                unset_serializable()
-                return error("Invalid identifier", error_codename="invalid_id")
-            voter = voters.first()
+    @serializable_retry
+    def critical_path():
+        voters = db.session.query(Voter)\
+            .filter(Voter.election_id == curr_eid,
+                    Voter.status == Voter.STATUS_AUTHENTICATED,
+                    Voter.is_active == True,
+                    Voter.id == int(data['identifier']))
+        if voters.count() == 0:
+            return error("Invalid identifier", error_codename="invalid_id")
+        voter = voters.first()
 
-            # check token
-            key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
-            hmac = salted_hmac(key, data['identifier'], "").hexdigest()
-            if not constant_time_compare(data["sha1_hmac"], hmac):
-                unset_serializable()
-                return error("Invalid hmac", error_codename="invalid_hmac")
+        # check token
+        key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
+        hmac = salted_hmac(key, data['identifier'], "").hexdigest()
+        if not constant_time_compare(data["sha1_hmac"], hmac):
+            return error("Invalid hmac", error_codename="invalid_hmac")
 
-            voter.status = Voter.STATUS_VOTED
-            voter.modified = datetime.utcnow()
-            db.session.add(voter)
-            db.session.commit()
-            # okey now we have finished the critical serialized path, we can breath now
-            unset_serializable()
-            break
-        except:
-            db.session.rollback()
+        voter.status = Voter.STATUS_VOTED
+        voter.modified = datetime.utcnow()
+        db.session.add(voter)
+        db.session.commit()
+        # okey now we have finished the critical serialized path, we can breath now
+        return None
+    ret = critical_path()
+    if ret is not None:
+        return ret
 
     return make_response("", 200)
 
