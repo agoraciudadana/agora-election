@@ -89,7 +89,7 @@ def serializable_retry(func, max_num_retries=None):
             try:
                 ret = func(*args, **kwargs)
                 break
-            except sa_exc.InvalidRequestError as e:
+            except Exception as e:
                 # only accept rollback related exception
                 if len(e.args) is 0 or not isinstance(e.args[0], str) or\
                         'rollback' not in e.args[0]:
