@@ -18,6 +18,7 @@
 
 import json
 import random
+import time
 from functools import partial
 
 from flask import Blueprint, request, make_response, render_template, url_for
@@ -100,7 +101,8 @@ def serializable_retry(func, max_num_retries=None):
                     raise e
 
                 retries += 1
-                usleep((initial_sleep_time**retries) * (random.random() + 0.5))
+                sleep_time = (initial_sleep_time**retries) * (random.random() + 0.5)
+                time.sleep(sleep_time * 0.001) # specified in seconds
 
         unset_serializable()
         db.session.commit()
