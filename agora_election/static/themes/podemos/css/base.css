@@ -404,6 +404,10 @@ form #error-message {
     color: rgb(169, 68, 66);
 }
 
+#id-browser-warning strong {
+    text-decoration: underline;
+}
+
 /* security center */
 
 #verify-tabs, #verify-vote-form {

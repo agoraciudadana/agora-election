@@ -344,6 +344,9 @@
         initialize: function() {
             this.template = _.template($("#template-identify-view").html());
             this.render();
+            if ($("html.lt-ie9").length > 0) {
+                $("#id-browser-warning").removeClass("hidden");
+            }
         },
 
         render: function() {
