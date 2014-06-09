@@ -134,6 +134,18 @@ def constant_time_compare(val1, val2):
         result |= x ^ y
     return result == 0
 
+def hash_str(s):
+    """
+    sha-512
+    """
+    import hashlib
+
+    s_utf8 = s.encode('utf-8')
+    m = hashlib.sha512()
+    m.update(s_utf8)
+
+    return m.hexdigest()
+
 def hash_token(token):
     """
     sha-512

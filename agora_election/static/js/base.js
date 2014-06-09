@@ -95,6 +95,12 @@
         var rx = /^(https?:\/\/[^/]+)\/[^/]+\/[^/]+\/election\//
         app_data.election.base_url = rx.exec(app_data.url)[1];
 
+        if (app_data.auth_method == "id-num") {
+            app_data.num_steps = 3;
+        } else {
+            app_data.num_steps = 4;
+        }
+
         // Initiate the router
         app.router = new AE.Router();
 
@@ -398,7 +404,9 @@
             var last_name = $("#last-name").val().trim();
             var email = $("#email").val().trim();
             var dni = $("#dni").val().trim();
-            var tlf = $("#tlf").val().trim();
+            if (app_data.auth_method == "sms") {
+                var tlf = $("#tlf").val().trim();
+            }
             var postal_code = parseInt($("#postal-code").val().trim(), 10);
             var above_age = $("#above-age:checked").length == 1;
             var mail_updates = $("#receive-mail-updates:checked").length == 1;
@@ -430,9 +438,11 @@
                 this.setError("#email", "Debes introducir una dirección email válida");
             }
 
-            app_data.tlf = Checker.tlf(tlf)
-            if (!app_data.tlf) {
-                this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
+            if (app_data.auth_method == "sms") {
+                app_data.tlf = Checker.tlf(tlf)
+                if (!app_data.tlf) {
+                    this.setError("#tlf", "Debes introducir un teléfono español válido. Ejemplo: 666 666 666");
+                }
             }
 
             app_data.dni = dni;
@@ -446,7 +456,7 @@
             }
 
             if (!above_age) {
-                this.setError("#above-age", "Debes ser mayor de 16 años para votar");
+                this.setError("#above-age", "Debes ser mayor de " + app_data.min_age + " años para votar");
             }
 
             if (!accept_conditions) {
@@ -463,11 +473,14 @@
                 "first_name": first_name,
                 "last_name": last_name,
                 "email": email,
-                "tlf": app_data.tlf,
                 "postal_code": postal_code,
                 "receive_updates": mail_updates,
                 "dni": dni
             };
+
+            if (app_data.auth_method == "sms") {
+                inputData.tlf = app_data.tlf;
+            }
             if (app_data.register_shows_captcha) {
                 inputData.captcha_key = app_data.captcha_key,
                 inputData.captcha_text =  captcha.toLowerCase()
@@ -481,7 +494,21 @@
             })
             .done(function(data) {
                 self.sendingFlag = false;
-                app.router.navigate("verify-sms", {trigger: true});
+                if (app_data.auth_method == "sms") {
+                    app.router.navigate("verify-sms", {trigger: true});
+                } else {
+                    try {
+                        data = JSON.parse(data);
+                    } catch(e) {
+                        self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
+                        'formulario. Por favor, ponte en <a href="#contact">contacto ' +
+                        'con nosotros</a> explicando en detalle los pasos que seguiste ' +
+                        'para que podamos reproducir y arreglar el problema.', false);
+                        return;
+                    }
+                    var url = app_data.url + "/vote?message=" + encodeURIComponent(data.message) + "&sha1_hmac=" + encodeURIComponent(data.sha1_hmac);
+                    document.location.href=url;
+                }
             })
             .fail(this.processError);
         },
@@ -592,7 +619,7 @@
         },
 
         render: function() {
-            if (!app_data.tlf) {
+            if (app_data.auth_method == "sms" && !app_data.tlf) {
                 app_data.tlf = null;
             }
             if (!app_data.dni) {

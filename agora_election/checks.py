@@ -127,13 +127,14 @@ def int_constraint(val, min_val=None, max_val=None):
         return False
     return True
 
-def check_has_not_voted(ip_addr, data):
+def check_has_not_voted(data):
     '''
     check that tlf should have not voted
     '''
     from app import db
     from models import Voter
 
+    ip_addr = data['ip_addr']
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
 
     voter = db.session.query(Voter)\
@@ -147,13 +148,14 @@ def check_has_not_voted(ip_addr, data):
     return RET_PIPE_CONTINUE
 
 
-def check_dni_has_not_voted(ip_addr, data):
+def check_dni_has_not_voted(data):
     '''
     check that dni should have not voted
     '''
     from app import db
     from models import Voter
 
+    ip_addr = data['ip_addr']
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
 
     voter = db.session.query(Voter)\
@@ -167,13 +169,14 @@ def check_dni_has_not_voted(ip_addr, data):
 
     return RET_PIPE_CONTINUE
 
-def check_tlf_whitelisted(ip_addr, data):
+def check_tlf_whitelisted(data):
     '''
     If tlf is whitelisted, accept
     '''
     from app import db
     from models import ColorList
 
+    ip_addr = data['ip_addr']
     item = db.session.query(ColorList)\
         .filter(ColorList.key == ColorList.KEY_TLF,
                 ColorList.value == data["tlf"]).first()
@@ -186,13 +189,14 @@ def check_tlf_whitelisted(ip_addr, data):
         data["tlf_blacklisted"] = False
     return RET_PIPE_CONTINUE
 
-def check_ip_whitelisted(ip_addr, data):
+def check_ip_whitelisted(data):
     '''
     If ip is whitelisted, then do not blacklist by ip in the following checkers
     '''
     from app import db
     from models import ColorList
 
+    ip_addr = data['ip_addr']
     items = db.session.query(ColorList)\
         .filter(ColorList.key == ColorList.KEY_IP,
                 ColorList.value == ip_addr)
@@ -203,17 +207,42 @@ def check_ip_whitelisted(ip_addr, data):
 
     return RET_PIPE_CONTINUE
 
-def check_blacklisted(ip_addr, data):
+def check_ip_blacklisted(data):
     '''
-    check if tlf or ip are blacklisted
+    check if tlf is blacklisted
+    '''
+    from app import db
+    from models import ColorList
+
+    ip_addr = data['ip_addr']
+    # optimization: if we have already gone through the whitelisting checking
+    # we don't have do new queries
+    if 'ip_blacklisted' in data:
+        if data['ip_blacklisted'] is True:
+            return error("Blacklisted", error_codename="blacklisted")
+
+        return RET_PIPE_CONTINUE
+
+    item = db.session.query(ColorList)\
+        .filter(ColorList.key == ColorList.KEY_IP,
+                ColorList.action == ColorList.ACTION_BLACKLIST,
+                ColorList.value == ip_addr).first()
+    if item is not None:
+        return error("Blacklisted", error_codename="blacklisted")
+
+    return RET_PIPE_CONTINUE
+
+def check_tlf_blacklisted(data):
+    '''
+    check if tlf is blacklisted
     '''
     from app import db
     from models import ColorList
 
     # optimization: if we have already gone through the whitelisting checking
     # we don't have do new queries
-    if 'ip_blacklisted' in data and 'tlf_blacklisted' in data:
-        if data['ip_blacklisted'] or data['tlf_blacklisted']:
+    if 'tlf_blacklisted' in data:
+        if data['tlf_blacklisted']:
             return error("Blacklisted", error_codename="blacklisted")
 
         return RET_PIPE_CONTINUE
@@ -225,22 +254,16 @@ def check_blacklisted(ip_addr, data):
     if item is not None:
         return error("Blacklisted", error_codename="blacklisted")
 
-    item = db.session.query(ColorList)\
-        .filter(ColorList.key == ColorList.KEY_IP,
-                ColorList.action == ColorList.ACTION_BLACKLIST,
-                ColorList.value == ip_addr).first()
-    if item is not None:
-        return error("Blacklisted", error_codename="blacklisted")
-
     return RET_PIPE_CONTINUE
 
-def check_tlf_total_max(ip_addr, data, total_max):
+def check_tlf_total_max(data, total_max):
     '''
     if tlf has been sent >= MAX_SMS_LIMIT failed-sms in total->blacklist, error
     '''
     from app import db
     from models import ColorList, Message
 
+    ip_addr = data['ip_addr']
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
                 Message.authenticated == False,
@@ -259,13 +282,14 @@ def check_tlf_total_max(ip_addr, data, total_max):
         return error("Blacklisted", error_codename="blacklisted")
     return RET_PIPE_CONTINUE
 
-def check_tlf_day_max(ip_addr, data, day_max):
+def check_tlf_day_max(data, day_max):
     '''
     if tlf has been sent >= MAX_DAY_SMS_LIMIT failed-sms last day-> error
     '''
     from app import db
     from models import Message
 
+    ip_addr = data['ip_addr']
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
                 Message.authenticated == False,
@@ -276,13 +300,14 @@ def check_tlf_day_max(ip_addr, data, day_max):
         return error("Too many messages sent in a day", error_codename="wait_day")
     return RET_PIPE_CONTINUE
 
-def check_tlf_hour_max(ip_addr, data, hour_max):
+def check_tlf_hour_max(data, hour_max):
     '''
     if tlf has been sent >= MAX_SMS_LIMIT failed-sms last hour-> error
     '''
     from app import db
     from models import Message
 
+    ip_addr = data['ip_addr']
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
                 Message.authenticated == False,
@@ -293,13 +318,14 @@ def check_tlf_hour_max(ip_addr, data, hour_max):
         return error("Too many messages sent in an hour", error_codename="wait_hour")
     return RET_PIPE_CONTINUE
 
-def check_tlf_expire_max(ip_addr, data):
+def check_tlf_expire_max(data):
     '''
     if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
     '''
     from app import db
     from models import Message
 
+    ip_addr = data['ip_addr']
     secs = current_app.config.get('SMS_EXPIRE_SECS', 120)
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
@@ -311,13 +337,14 @@ def check_tlf_expire_max(ip_addr, data):
         return error("Please wait until your sms arrives", error_codename="wait_expire")
     return RET_PIPE_CONTINUE
 
-def check_ip_total_max(ip_addr, data, total_max):
+def check_ip_total_max(data, total_max):
     '''
     if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
     '''
     from app import db
     from models import ColorList, Message
 
+    ip_addr = data['ip_addr']
     item = db.session.query(Message)\
         .filter(Message.ip == ip_addr,
                 Message.authenticated == False,
@@ -332,46 +359,232 @@ def check_ip_total_max(ip_addr, data, total_max):
         return error("Blacklisted", error_codename="blacklisted")
     return RET_PIPE_CONTINUE
 
-def check_registration_pipeline(ip_addr, data):
+def send_sms_pipe(data):
     '''
-    Does a deeper check on the input data when creating an election. These are
-    the default constraints in order:
-    1. tlf should have not voted in this election
-    2. if tlf is whitelisted, then accept. Else, continue checking:
-    3. if ip is whitelisted, then do not blacklist by ip in the following
-       checkers
-    4. tlf, ip should not be blacklisted
+    check that the ip is not blacklisted, or that the tlf has already voted,
+    and finally set the return value
+    '''
+    from app import db
+    from models import Voter, Message
+    from toolbox import hash_token, token_generator
+    from tasks import send_sms
 
-    5. if tlf has been sent >=8 failed-sms in total, error, blacklist
-    6  if ip has been sent >= 7 failed-sms last day, error, wait
-    7. if tlf has been sent >=3 failed-sms last hour, error, wait
-    8. if tlf has been sent an failed-sms last 2 minutes, error, wait
+    ip_addr = data['ip_addr']
 
-    9. if ip has been sent >=8 failed-sms in total, error, blacklist
-    9. success!
+    # disable older registration attempts for this tlf
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    old_voters = db.session.query(Voter)\
+        .filter(Voter.election_id == curr_eid,
+                Voter.tlf == data["tlf"],
+                Voter.is_active == True)
+    for ov in old_voters:
+        ov.is_active = False
+        db.session.add(ov)
 
-    This uses the config parameter CHECKS_PIPELINE, that must be a list of
-    pairs. Each pair contains (checker_path, params), where checker is the
-    path to the module and function name of the checker, and params is either
-    None or a dictionary with extra parameters accepted by the checker.
+    # create the message to be sent
+    token = token_generator()
+    token_hash = hash_token(token)
+    msg = Message(
+        tlf=data["tlf"],
+        ip=ip_addr,
+        lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
+        token=token_hash,
+        status=Message.STATUS_QUEUED,
+    )
 
-    Checkers must accept always at least two parameters:
-    * ip_addr: string containing the ip address of the form sender.
-    * data: will be the dict data that comes from the resgistration form (see
-    details in agora.election.views.post_register). It's been already minimally
-    sanitized.
+    # create voter and send sms
+    voter = Voter(
+        election_id=curr_eid,
+        ip=ip_addr,
+        first_name=data["first_name"],
+        last_name=data["last_name"],
+        email=data["email"],
+        tlf=data["tlf"],
+        postal_code=data["postal_code"],
+        receive_mail_updates=data["receive_updates"],
+        lang_code=msg.lang_code,
+        status=Voter.STATUS_CREATED,
+        message=msg,
+        is_active=True,
+        dni=data["dni"].upper(),
+    )
 
-    Checkers are allowed to modify data dict to use it as a way to communicate
-    with the following checkers in the pipeline.
+    db.session.add(voter)
+    db.session.add(msg)
+    db.session.commit()
+
+    send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=token),
+        countdown=current_app.config.get('SMS_DELAY', 1),
+        expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
+
+    return make_response("", 200)
+
+def check_minshu_census(data, **kwargs):
+    '''
+    Checks in minshu census that no user with the same ID has voted
+    '''
+    import requests
+    from crypto import hash_str
+
+    dni = data["dni"].upper()
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+
+    url = "%(base_url)s/api/v1/voter/%(id)s" % dict(
+        base_url= kwargs["base_url"],
+        id = hash_str(dni)
+    )
+    headers = {}
+
+    # TODO: use authentication
+    r = requests.get(url, headers=headers)
+    # DNI is new
+    if r.status_code == 404:
+        return RET_PIPE_CONTINUE
+    elif r.status_code == 200:
+        # TODO: check the extra
+        return error("Already voted", field="dni",
+                     error_codename="already_voted")
+    else:
+        return error("Service unavailable", error_codename="unavailable")
+
+def return_vote_hmac(data):
+    '''
+    In three steps auth methods (id-num, id-photo), return directly the hmac
+    to vote as there's no third-step verification.
+    '''
+    from crypto import salted_hmac, get_random_string
+    from app import db
+    from models import Voter
+    from crypto import hash_str
+
+    dni = data["dni"].upper()
+    ip_addr = data['ip_addr']
+
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    # create voter
+    voter = Voter(
+        election_id=curr_eid,
+        ip=ip_addr,
+        first_name="-",
+        last_name="-",
+        email="-",
+        tlf="-",
+        postal_code=data["postal_code"],
+        receive_mail_updates=data["receive_updates"],
+        lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
+        status=Voter.STATUS_AUTHENTICATED,
+        modified = datetime.utcnow(),
+        message=None,
+        is_active=True,
+        dni=hash_str(dni),
+    )
+
+    db.session.add(voter)
+    db.session.commit()
+
+    data['identifier'] = voter.id
+
+    message = "%d#%d" % (
+        int(datetime.utcnow().timestamp()),
+        voter.id
+    )
+    key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
+
+    ret_data = dict(
+        message=message,
+        sha1_hmac=salted_hmac(key, message, "").hexdigest()
+    )
+    return make_response(json.dumps(ret_data), 200)
+
+#### notify-pipes
+
+def check_id_auth(data):
+    from app import db
+    from models import Voter
+    from crypto import salted_hmac, constant_time_compare
+
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    voters = db.session.query(Voter)\
+        .filter(Voter.election_id == curr_eid,
+                Voter.status == Voter.STATUS_AUTHENTICATED,
+                Voter.is_active == True,
+                Voter.id == int(data['identifier']))
+    if voters.count() == 0:
+        return error("Invalid identifier", error_codename="invalid_id")
+
+    # check token
+    key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
+    hmac = salted_hmac(key, data['identifier'], "").hexdigest()
+    if not constant_time_compare(data["sha1_hmac"], hmac):
+        return error("Invalid hmac", error_codename="invalid_hmac")
+
+    voter = voters.first()
+    data['voter'] = voter
+    return RET_PIPE_CONTINUE
+
+def mark_voted_in_minshu(data, **kwargs):
+    '''
+    Registers the ID in the minshu census
+    '''
+    import requests
+    from crypto import hash_str
+
+    hashed_dni = data["voter"].dni
+    url = "%(base_url)s/api/v1/voter" % dict(
+        base_url= kwargs["base_url"]
+    )
+    data = dict(
+        value=hashed_dni,
+        extra=""
+    )
+    headers = {}
+
+    # TODO: use authentication
+    r = requests.post(url, data=data, headers=headers)
+    if r.status_code == 200:
+        return RET_PIPE_CONTINUE
+    else:
+        return error("Error registering the id", error_codename="unknown_error")
+
+def mark_id_authenticated(data):
+    from app import db
+    from models import Voter
+
+    voter = data['voter']
+
+    voter.status = Voter.STATUS_VOTED
+    voter.modified = datetime.utcnow()
+    db.session.add(voter)
+    db.session.commit()
+
+    return make_response("", 200)
+
+def execute_pipeline(data, pipeline = None):
+    '''
+    Executes a pipeline of functions.
+
+    If pipeline is empty, it  uses the config parameter SMS_CHECKS_PIPELINE by
+    default. The pipeline must be a list of pairs. Each pair contains
+    (checker_path, params), where checker is the path to the module and
+    function name of the checker, and params is either None or a dictionary
+    with extra parameters accepted by the checker.
+
+    Checkers must accept always at least one parameter, data, that is an object
+    that is passed from pipe to pipe.
+
+    Checkers are allowed to modify the "data" object to use it as a way to
+    communicate with the following checkers in the pipeline, and also to
+    communicate or store any information for the caller.
 
     Checkers return either:
-    * RET_PIPE_CONTINUE in which case next checker in the pipeline is called
+    * RET_PIPE_CONTINUE in which case next checker in the pipeline is called.
     * RET_PIPE_SUCCESS in which case pipeline stops directly without an error.
       Useful for whitelisting, for example.
-    * an instance of flask.Response, in which case we assume it's an error we
-      have to show.
+    * anything else, in which case we assume it's an error, so the pipeline
+      stops and returns that value.
     '''
-    pipeline = current_app.config.get('SMS_CHECKS_PIPELINE', [])
+    if pipeline is None:
+        pipeline = current_app.config.get('SMS_CHECKS_PIPELINE', [])
 
     for checker_path, kwargs in pipeline:
         # get access to the function
@@ -379,7 +592,7 @@ def check_registration_pipeline(ip_addr, data):
         module = __import__(
             ".".join(checker_path.split(".")[:-1]), globals(), locals(),
             [func_name], 0)
-        fargs = dict(ip_addr=ip_addr, data=data)
+        fargs = dict(data=data)
         if kwargs is not None:
             fargs.update(kwargs)
         ret = getattr(module, func_name)(**fargs)

@@ -63,7 +63,7 @@
            | <a href="#page/<%- static_pages[i].name %>"><%- static_pages[i].title %></a>
           <% } %>
           <br/>
-          <p>Funciona con <a href="https://agoravoting.com" target="_blank">software libre</a>.</p>
+          <p>Funciona con <a href="https://agoravoting.com" target="_blank">Agora Voting, software libre</a>.</p>
         </section>
       </div>
     </div>
@@ -412,7 +412,7 @@
   <script type="text/underscore-template" id="template-identify-view">
     <section class="content-wrapper cf row-fluid">
       <div class="col-xs-12 col-sm-12">
-        <h2 class="section-title">Identifícate (paso 1 de 4)</h2>
+        <h2 class="section-title">Identifícate (paso 1 de <%- num_steps %>)</h2>
       </div>
       <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
         <div id="id-browser-warning" class="alert alert-danger hidden">
@@ -438,11 +438,14 @@
           <input type="text" class="form-control" id="dni" placeholder="">
           <p class="help-block">El DNI/NIE con letra incluida, ejemplo: 12345678A</p>
         </div>
-        <div class="form-group">
-          <label for="tlf">Teléfono</label>
-          <input type="text" class="form-control" id="tlf" placeholder="">
-          <p class="help-block">El teléfono debe ser español, ejemplo: 666 666 666</p>
-        </div>
+        <% if (auth_method == "sms") { %>
+          <div class="form-group">
+            <label for="tlf">Teléfono</label>
+            <input type="text" class="form-control" id="tlf" placeholder="">
+            <p class="help-block">El teléfono debe ser español, ejemplo: 666 666 666</p>
+          </div>
+        <% } else if (auth_method == "id-photo") { %>
+        <% } %>
         <div class="form-group">
           <label for="postal-code">Código postal</label>
           <input type="text" class="form-control" id="postal-code" placeholder="">
@@ -450,11 +453,15 @@
         </div>
         <div class="checkbox form-group">
           <label>
-            <input type="checkbox" id="above-age"> Tengo más de 16 años
+            <input type="checkbox" id="above-age"> Tengo más de <%- min_age %> años
             <p class="help-block"></p>
           </label>
         </div>
-        <div class="checkbox form-group">
+        <% if (show_check_receive_updates) { %>
+          <div class="checkbox form-group">
+        <% } else { %>
+          <div class="checkbox form-group hidden">
+        <% } %>
           <label>
             <input type="checkbox" id="receive-mail-updates"> Recibir actualizaciones por email
             <p class="help-block"></p>
@@ -482,7 +489,7 @@
         <button type="button" id="identify-action" class="btn btn-light btn-block">Identificarme</button>
       </form>
       <div class="section-header col-xs-12 col-sm-6">
-        <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes tener más de 16 años y tener un móvil con teléfono español para votar. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
+        <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes tener más de <%- min_age %> años y tener un móvil con teléfono español para votar. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
 
         <!--<p>Puedes ver un video tutorial de cómo votar aquí:</p>
         <iframe id="youtubeVideo" with="400" height="180" frameborder="0" allowfullscreen
@@ -495,7 +502,7 @@
   <script type="text/underscore-template" id="template-verify-sms-view">
     <section class="content-wrapper cf row-fluid">
       <div class="col-xs-12 col-sm-12">
-        <h2 class="section-title">Verifica tu código SMS (paso 2 de 4)</h2>
+        <h2 class="section-title">Verifica tu código SMS (paso 2 de <%- num_steps %>)</h2>
       </div>
       <form id="identify-form" role="form" class="col-xs-12 col-sm-6">
         <% if (!tlf) { %>

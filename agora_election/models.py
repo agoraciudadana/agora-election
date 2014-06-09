@@ -48,7 +48,7 @@ class Voter(db.Model):
 
     email = db.Column(db.String(140))
 
-    dni = db.Column(db.String(9))
+    dni = db.Column(db.String(512))
 
     postal_code = db.Column(db.String(140))
 

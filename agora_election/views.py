@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of agora-election.
-# Copyright (C) 2013  Eduardo Robles Elvira <edulix AT agoravoting DOT com>
+# Copyright (C) 2013, 2014  Eduardo Robles Elvira <edulix AT agoravoting DOT com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -30,85 +30,13 @@ from jinja2 import Markup
 
 from sqlalchemy.orm import exc as sa_exc
 
+from toolbox import *
 from checks import *
 from app import db, app_mail
 from crypto import constant_time_compare, salted_hmac, get_random_string, hash_token
 
 api = Blueprint('api', __name__)
 index = Blueprint('index', __name__)
-
-def get_ip(request):
-    getter = current_app.config.get('REAL_IP_GETTER', 'remote_addr')
-    if getter == 'remote_addr':
-        return request.remote_addr
-    else:
-        return request.headers[getter]
-
-def token_generator():
-    '''
-    Generate an user token string. 8 alfanumeric characters. We do not allow
-    confusing characters: 0,O,I,1
-    '''
-    return get_random_string(8, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-
-def set_serializable():
-    # if using postgres, then we check concurrency
-    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
-        import psycopg2
-        # commit to separate everything in a new transaction
-        db.session.commit()
-        conn = db.session.bind.engine.connect().connection.connection
-        conn.set_isolation_level(
-            psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
-
-def unset_serializable():
-    # if using postgres, then we check concurrency
-    if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
-        import psycopg2
-        conn = db.session.bind.engine.connect().connection.connection
-        conn.set_isolation_level(
-            psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED)
-
-def serializable_retry(func, max_num_retries=None):
-    '''
-    This decorator calls another function whose next commit will be serialized.
-    This might triggers a rollback. In that case, we will retry with some
-    increasing (5^n * random, where random goes from 0.5 to 1.5 and n starts
-    with 1) timing between retries, and fail after a max number of retries.
-    '''
-    def wrap(max_num_retries, *args, **kwargs):
-        if max_num_retries is None:
-            max_num_retries = current_app.config.get(
-                'MAX_NUM_SERIALIZED_RETRIES', 5)
-
-        retries = 1
-        initial_sleep_time = 5 # miliseconds
-
-        set_serializable()
-        while True:
-            try:
-                ret = func(*args, **kwargs)
-                break
-            except Exception as e:
-                # only accept rollback related exception
-                if len(e.args) is 0 or not isinstance(e.args[0], str) or\
-                        'rollback' not in e.args[0]:
-                    raise e
-                db.session.rollback()
-                if retries > max_num_retries:
-                    unset_serializable()
-                    db.session.commit()
-                    raise e
-
-                retries += 1
-                sleep_time = (initial_sleep_time**retries) * (random.random() + 0.5)
-                time.sleep(sleep_time * 0.001) # specified in seconds
-
-        unset_serializable()
-        db.session.commit()
-        return ret
-
-    return partial(wrap, max_num_retries)
 
 @api.route('/register/', methods=['POST'])
 def post_register():
@@ -123,6 +51,7 @@ def post_register():
         "first_name": "Fulanito",
         "last_name": "de tal",
         "email": "email@example.com",
+        "dni": "44055111F",
         "tlf": "+34666666666",
         "captcha_key": "a7b10fa7b10fa7b10fa7b10fa7b10fa7b",
         "captcha_text": "BEEF",
@@ -134,6 +63,7 @@ def post_register():
     '''
     from tasks import send_sms
     from models import Voter, Message
+    auth_method = current_app.config.get('AUTH_METHOD', None)
 
     election = current_app.config.get('AGORA_ELECTION_DATA', '')['election']
     if election['voting_ends_at_date'] is not None:
@@ -150,11 +80,14 @@ def post_register():
         ['last_name', lambda x: str_constraint(x, 3, 100)],
         ['email', email_constraint],
         ['postal_code', lambda x: int_constraint(x, 1, 100000)],
-        ['tlf', lambda x: str_constraint(
-            x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
         ['receive_updates', lambda x: isinstance(x, bool)],
         ['dni', lambda x: dni_constraint(x)],
     )
+
+    if auth_method == 'sms':
+        input_checks += (
+            ['tlf', lambda x: str_constraint(x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
+        )
 
     if current_app.config.get('REGISTER_SHOWS_CAPTCHA', None):
         input_checks += (
@@ -169,64 +102,11 @@ def post_register():
     # the tlf has already voted..
     @serializable_retry
     def critical_path():
-        check_status = check_registration_pipeline(get_ip(request), data)
-        if  check_status is not True:
-            return check_status
+        data['ip_addr'] = get_ip(request)
+        return execute_pipeline(data,
+            current_app.config.get('SMS_CHECKS_PIPELINE', []))
 
-        # disable older registration attempts for this tlf
-        curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
-        old_voters = db.session.query(Voter)\
-            .filter(Voter.election_id == curr_eid,
-                    Voter.tlf == data["tlf"],
-                    Voter.is_active == True)
-        for ov in old_voters:
-            ov.is_active = False
-            db.session.add(ov)
-
-        # create the message to be sent
-        token = token_generator()
-        token_hash = hash_token(token)
-        msg = Message(
-            tlf=data["tlf"],
-            ip=get_ip(request),
-            lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
-            token=token_hash,
-            status=Message.STATUS_QUEUED,
-        )
-
-        # create voter and send sms
-        voter = Voter(
-            election_id=curr_eid,
-            ip=get_ip(request),
-            first_name=data["first_name"],
-            last_name=data["last_name"],
-            email=data["email"],
-            tlf=data["tlf"],
-            postal_code=data["postal_code"],
-            receive_mail_updates=data["receive_updates"],
-            lang_code=msg.lang_code,
-            status=Voter.STATUS_CREATED,
-            message=msg,
-            is_active=True,
-            dni=data["dni"].upper(),
-        )
-
-        db.session.add(voter)
-        db.session.add(msg)
-        db.session.commit()
-        return msg, token
-    ret = critical_path()
-    if not isinstance(ret, tuple):
-        return ret
-
-    msg, token = ret
-
-    send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=token),
-        countdown=current_app.config.get('SMS_DELAY', 1),
-        expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
-
-
-    return make_response("", 200)
+    return critical_path()
 
 @api.route('/sms_auth/', methods=['POST'])
 def post_sms_auth():
@@ -373,27 +253,9 @@ def post_notify_vote():
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
     @serializable_retry
     def critical_path():
-        voters = db.session.query(Voter)\
-            .filter(Voter.election_id == curr_eid,
-                    Voter.status == Voter.STATUS_AUTHENTICATED,
-                    Voter.is_active == True,
-                    Voter.id == int(data['identifier']))
-        if voters.count() == 0:
-            return error("Invalid identifier", error_codename="invalid_id")
-        voter = voters.first()
+        return execute_pipeline(data,
+            current_app.config.get('NOTIFY_VOTE_PIPELINE', []))
 
-        # check token
-        key = current_app.config.get("AGORA_SHARED_SECRET_KEY", "")
-        hmac = salted_hmac(key, data['identifier'], "").hexdigest()
-        if not constant_time_compare(data["sha1_hmac"], hmac):
-            return error("Invalid hmac", error_codename="invalid_hmac")
-
-        voter.status = Voter.STATUS_VOTED
-        voter.modified = datetime.utcnow()
-        db.session.add(voter)
-        db.session.commit()
-        # okey now we have finished the critical serialized path, we can breath now
-        return None
     ret = critical_path()
     if ret is not None:
         return ret
