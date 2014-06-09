@@ -51,6 +51,8 @@ class SMSProvider(object):
         provider = app_flask.config.get('SMS_PROVIDER', '')
         if provider == "altiria":
             return AltiriaSMSProvider()
+        if provider == "esendex":
+            return EsendexSMSProvider()
         if provider == "console":
             return ConsoleSMSProvider()
         else:
@@ -157,3 +159,71 @@ class AltiriaSMSProvider(SMSProvider):
         result['lines'] = lines
 
         return result
+
+
+class EsendexSMSProvider(SMSProvider):
+    '''
+    Esendex SMS Provider
+    '''
+
+    provider_name = "esendex"
+    HTTP_OK = 200
+
+    # credentials, read from app config
+    # this corresponds to the  <accountreference>
+    domain_id = None
+    login = None
+    password = None
+    url = None
+    # sets the <from> field
+    sender_id = None
+
+    # header used in altiria requests
+    headers = {
+        'Content-type': 'application/xml; charset=UTF-8',
+        'Accept': 'text/xml'
+    }
+
+    # template xml
+    template = """<?xml version='1.0' encoding='UTF-8'?>
+        <messages>
+        <accountreference>EX0130074</accountreference>
+        <message>
+        <to>%s</to>
+        <body>%s</body>
+        <from>%s</from>
+        </message>
+        </messages>"""
+
+    def __init__(self):
+        self.domain_id = app_flask.config.get('SMS_DOMAIN_ID', '')
+        self.login = app_flask.config.get('SMS_LOGIN', '')
+        self.password = app_flask.config.get('SMS_PASSWORD', '')
+        self.url = app_flask.config.get('SMS_URL', '')
+        self.sender_id = app_flask.config.get('SMS_SENDER_ID', '')
+
+        self.auth = (self.login, self.password)
+
+    def send_sms(self, receiver, content):
+
+        data = template % (receiver, content, self.sender_id)
+        logging.debug("sending message.." + str(data))
+        r = requests.post(self.url, data=data, headers=self.headers, auth=self.auth)
+
+        ret = self.parse_response(r)
+        logging.debug(ret)
+        return ret
+
+    def parse_response(self, response):
+        '''
+        parses responses in esendex format
+        '''
+        if resp.status_code == HTTP_OK:
+            ret = xmltodict.parse(resp.text)
+        else:
+            ret = {
+                'code': resp.status_code,
+                'error': resp.text
+            }
+
+        return ret
