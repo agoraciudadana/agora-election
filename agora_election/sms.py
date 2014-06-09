@@ -187,7 +187,7 @@ class EsendexSMSProvider(SMSProvider):
     # template xml
     template = """<?xml version='1.0' encoding='UTF-8'?>
         <messages>
-        <accountreference>EX0130074</accountreference>
+        <accountreference>%s</accountreference>
         <message>
         <to>%s</to>
         <body>%s</body>
@@ -206,7 +206,7 @@ class EsendexSMSProvider(SMSProvider):
 
     def send_sms(self, receiver, content):
 
-        data = template % (receiver, content, self.sender_id)
+        data = template % (self.domain_id, receiver, content, self.sender_id)
         logging.debug("sending message.." + str(data))
         r = requests.post(self.url, data=data, headers=self.headers, auth=self.auth)
 
