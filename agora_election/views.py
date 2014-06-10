@@ -329,6 +329,28 @@ def post_contact():
     app_mail.send(msg)
 
     return make_response("", 200)
+	
+@api.route('/upload-dni/', methods=['POST'])
+def upload_dni():
+    '''
+    TODO Receives dni uploads
+    '''
+    from flask import request, jsonify
+    import os
+    import uuid
+
+    path = current_app.config.get('DNI_FILE_PATH', '/tmp/aelection-dni/')
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    data_file = request.files.get('dni')
+    file_name = data_file.filename
+    unique_filename = str(uuid.uuid4())
+    full_path = os.path.join(path, unique_filename)
+    data_file.save(full_path)
+    file_size = os.path.getsize(full_path)
+
+    return jsonify(name=unique_filename, size=file_size)
 
 @index.route('/', methods=['GET'])
 def get_index():

@@ -359,6 +359,18 @@
             this.$el.html(this.template(app_data));
             this.getCaptcha(false);
             this.delegateEvents();
+			if (app_data.auth_method == "id-photo") {
+                // TODO
+				$('#fileupload').fileupload({
+                    dataType: 'json',
+                    done: function (e, data) {
+                        console.log(data.result);
+                        console.log(data.result.name);
+                        $('#dni-status').text('test');
+                        $('#fileupload').hide();
+                    }
+                });
+            }
             return this;
         },
 
