@@ -432,8 +432,9 @@
                 this.setError("#last-name", "Obligatorio, de 3 a 60 caracteres");
             }
 
-            if (email.length < 3 || email.length >= 140 ||
-                    !Checker.email(email))
+            if (app_data.show_email &&
+                (email.length < 3 || email.length >= 140 ||
+                !Checker.email(email)))
             {
                 this.setError("#email", "Debes introducir una dirección email válida");
             }
@@ -450,7 +451,9 @@
                 this.setError("#dni", "Debes introducir un DNI válido");
             }
 
-            if (!/^[0-9]+$/.test(postal_code) || postal_code < 1 || postal_code > 100000)
+            if (app_data.show_postal_code &&
+                (!/^[0-9]+$/.test(postal_code) || postal_code < 1
+                 || postal_code > 100000))
             {
                 this.setError("#postal-code", "Código postal inválido");
             }

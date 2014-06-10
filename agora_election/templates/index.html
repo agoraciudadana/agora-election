@@ -428,7 +428,11 @@
           <input type="text" class="form-control" id="last-name" placeholder="">
           <p class="help-block"></p>
         </div>
-        <div class="form-group">
+        <% if (show_email) { %>
+          <div class="checkbox form-group">
+        <% } else { %>
+          <div class="checkbox form-group hidden">
+        <% } %>
           <label for="email">Email</label>
           <input type="email" class="form-control" id="email" placeholder="">
           <p class="help-block"></p>
@@ -446,7 +450,11 @@
           </div>
         <% } else if (auth_method == "id-photo") { %>
         <% } %>
-        <div class="form-group">
+        <% if (show_postal_code) { %>
+          <div class="checkbox form-group">
+        <% } else { %>
+          <div class="checkbox form-group hidden">
+        <% } %>
           <label for="postal-code">Código postal</label>
           <input type="text" class="form-control" id="postal-code" placeholder="">
           <p class="help-block"></p>
@@ -489,7 +497,7 @@
         <button type="button" id="identify-action" class="btn btn-light btn-block">Identificarme</button>
       </form>
       <div class="section-header col-xs-12 col-sm-6">
-        <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes tener más de <%- min_age %> años y tener un móvil con teléfono español para votar. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
+        <p>Es necesario que verifiques tu identidad antes de votar. Si te identificaste anteriormente pero no llegaste a registrar tu voto, podrás hacerlo de nuevo. Debes tener más de <%- min_age %> años y tener una forma de identificarte. Más información en las <a href="#page/faq" target="_blank">preguntas frecuentes</a>.</p>
 
         <!--<p>Puedes ver un video tutorial de cómo votar aquí:</p>
         <iframe id="youtubeVideo" with="400" height="180" frameborder="0" allowfullscreen

@@ -78,8 +78,6 @@ def post_register():
     input_checks = (
         ['first_name', lambda x: str_constraint(x, 3, 60)],
         ['last_name', lambda x: str_constraint(x, 3, 100)],
-        ['email', email_constraint],
-        ['postal_code', lambda x: int_constraint(x, 1, 100000)],
         ['receive_updates', lambda x: isinstance(x, bool)],
         ['dni', lambda x: dni_constraint(x)],
     )
@@ -87,6 +85,16 @@ def post_register():
     if auth_method == 'sms':
         input_checks += (
             ['tlf', lambda x: str_constraint(x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
+        )
+
+    if current_app.config.get('SHOW_EMAIL', None):
+        input_checks += (
+            ['email', email_constraint],
+        )
+
+    if current_app.config.get('SHOW_POSTAL_CODE', None):
+        input_checks += (
+            ['postal_code', lambda x: int_constraint(x, 1, 100000)],
         )
 
     if current_app.config.get('REGISTER_SHOWS_CAPTCHA', None):
@@ -126,6 +134,9 @@ def post_sms_auth():
         "sha1_hmac": "<sha1 hash>",
     }
     '''
+    if current_app.config.get('AUTH_METHOD', None) != 'sms':
+        return error("Invalid auth method", error_codename="unauthorized")
+
     from tasks import send_sms
     from models import Voter, Message
 

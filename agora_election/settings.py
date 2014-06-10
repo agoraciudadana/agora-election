@@ -119,6 +119,10 @@ MIN_AGE = "16"
 
 SHOW_CHECK_RECEIVE_UPDATES = True
 
+SHOW_EMAIL = True
+
+SHOW_POSTAL_CODE = True
+
 AGORA_ELECTION_DATA = dict(
     parent_site=dict(
         name="www.podemos.info",
@@ -141,7 +145,9 @@ AGORA_ELECTION_DATA = dict(
     ),
     auth_method=AUTH_METHOD,
     min_age=MIN_AGE,
+    show_email=SHOW_EMAIL,
     show_check_receive_updates=SHOW_CHECK_RECEIVE_UPDATES,
+    show_postal_code=SHOW_POSTAL_CODE,
 )
 
 ########### flask
