@@ -159,7 +159,7 @@ def main():
             exit(1)
         if pargs.tlf.startswith("+34"):
             tlf = pargs.tlf
-        else:
+        elif not pargs.tlf.startswith("00") and not pargs.tlf.startswith("+"):
             tlf = "+34" + pargs.tlf
         kwargs = dict(
             receiver = tlf,
@@ -168,12 +168,29 @@ def main():
         from views import token_generator
         msg = Message(
             tlf=tlf,
-            lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
-            token=pargs.message
+            lang_code=app_flask.config.get("BABEL_DEFAULT_LOCALE", "en"),
+            token=pargs.message,
+            status=Message.STATUS_QUEUED
+        )
+        voter = Voter(
+            election_id=app_flask.config.get("CURRENT_ELECTION_ID", 0),
+            ip="127.0.0.1",
+            first_name="local",
+            last_name="local",
+            email="none",
+            tlf=tlf,
+            postal_code="-",
+            receive_mail_updates=False,
+            lang_code=msg.lang_code,
+            status=Voter.STATUS_CREATED,
+            message=msg,
+            is_active=True,
+            dni="-",
         )
         db.session.add(msg)
+        db.session.add(voter)
         db.session.commit()
-        send_sms.apply_async(kwargs=dict(msg_id=msg.id),
+        send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=pargs.message),
             expires=app_flask.config.get('SMS_EXPIRE_SECS', 120))
         return
     elif pargs.list_colors:

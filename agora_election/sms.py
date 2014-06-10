@@ -19,6 +19,7 @@
 from app import app_flask
 import requests
 import logging
+import xmltodict
 
 class SMSProvider(object):
     '''
@@ -185,7 +186,7 @@ class EsendexSMSProvider(SMSProvider):
     }
 
     # template xml
-    template = """<?xml version='1.0' encoding='UTF-8'?>
+    msg_template = """<?xml version='1.0' encoding='UTF-8'?>
         <messages>
         <accountreference>%s</accountreference>
         <message>
@@ -206,7 +207,7 @@ class EsendexSMSProvider(SMSProvider):
 
     def send_sms(self, receiver, content):
 
-        data = template % (self.domain_id, receiver, content, self.sender_id)
+        data = self.msg_template % (self.domain_id, receiver, content, self.sender_id)
         logging.debug("sending message.." + str(data))
         r = requests.post(self.url, data=data, headers=self.headers, auth=self.auth)
 
@@ -218,12 +219,12 @@ class EsendexSMSProvider(SMSProvider):
         '''
         parses responses in esendex format
         '''
-        if resp.status_code == HTTP_OK:
-            ret = xmltodict.parse(resp.text)
+        if response.status_code == self.HTTP_OK:
+            ret = xmltodict.parse(response.text)
         else:
             ret = {
-                'code': resp.status_code,
-                'error': resp.text
+                'code': response.status_code,
+                'error': response.text
             }
 
         return ret

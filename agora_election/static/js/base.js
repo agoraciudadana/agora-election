@@ -475,11 +475,17 @@
             var inputData = {
                 "first_name": first_name,
                 "last_name": last_name,
-                "email": email,
-                "postal_code": postal_code,
                 "receive_updates": mail_updates,
                 "dni": dni
             };
+
+            if (app_data.show_email) {
+                inputData.email = email;
+            }
+
+            if (app_data.show_postal_code) {
+                inputData.postal_code = postal_code;
+            }
 
             if (app_data.auth_method == "sms") {
                 inputData.tlf = app_data.tlf;
