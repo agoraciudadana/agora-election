@@ -34,6 +34,7 @@ from flask.ext.babel import Babel
 from flask.ext.mail import Mail
 from flask.ext.captcha import Captcha
 from flask.ext.captcha.views import captcha_blueprint
+from raven.contrib.flask import Sentry
 
 class App(Flask):
     db = None
@@ -100,6 +101,8 @@ def config():
     # config captcha
     app_captcha.init_app(app_flask)
     app_mail.init_app(app_flask)
+    sentry = Sentry()
+    sentry.init_app(app=app_flask)
 
 def main():
     parser = argparse.ArgumentParser()
