@@ -81,9 +81,10 @@ def config():
 
     if election_url.startswith("http"):
         import requests
-        election_json = requests.get(election_url, verify=False).json()
+        bauth = app_flask.config.get('AGORA_ELECTION_DATA_BASIC_AUTH', None)
+        election_json = requests.get(election_url, verify=False, auth=bauth).json()
         extra_data_json =  requests.get(election_url + "extra_data/",
-                                        verify=False).json()
+                                        verify=False, auth=bauth).json()
     else:
         with open(election_url, 'r', encoding="utf-8") as f:
             election_json = json.loads(f.read())

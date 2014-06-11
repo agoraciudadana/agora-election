@@ -108,6 +108,10 @@ STATIC_PAGES = []
 
 AGORA_ELECTION_DATA_URL = 'https://local.dev/api/v1/election/115/'
 
+# if the url above needs http auth:
+#AGORA_ELECTION_DATA_BASIC_AUTH = ("foo", "pass")
+AGORA_ELECTION_DATA_BASIC_AUTH = None
+
 # AUTH_METHOD posibilities:
 # - "sms"
 # - "id-num"
