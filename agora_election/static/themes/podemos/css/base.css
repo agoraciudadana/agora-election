@@ -54,7 +54,7 @@ body {
 }
 
 #header .headlines h2 {
-    color: rgb(97, 45, 98);
+    color: #624E62;
     letter-spacing: 0.2rem;
     display: block;
     clear: both;
@@ -320,7 +320,7 @@ body {
 .candidate-item .description {
     display: block;
     float: left;
-    padding-left: 165px;
+/*     padding-left: 165px; */
     padding-right: 1em;
     width: 100%;
 }

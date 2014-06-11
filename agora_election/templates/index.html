@@ -358,7 +358,6 @@
         <% } else { %>
           <h3>Opciones</h3>
         <% } %>
-        <h4>En orden aleatorio</h4>
     </div>
     <div class="candidates-wrapper container-fluid">
       <% for(var i = 0; i< election.questions[0].answers.length; i++) { %>
@@ -372,12 +371,19 @@
           <div class="cf">
             <div class="description">
               <h3><%- candidate.value %></h3>
-              <p class="short-description"><%- AE.shortDetails(candidate.details) %></p>
+              <p class="short-description">
+              <% if (!primary_mode || primary_mode != "small-primary") { %>
+                <%= AE.shortDetails(candidate.details) %></p>
+              <% } else { %>
+                <%= candidate.details %></p>
+              <% } %>
               <div class="container-fluid info-points">
                 <div class="col-xs-7">
-                  <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
-                    Presentación y motivos
-                  </a>
+                  <% if (!primary_mode || primary_mode != "small-primary") { %>
+                    <a href="#" alt="Presentación y motivos" class="details" data-candidate="<%- JSON.stringify(candidate) %>">
+                      Presentación y motivos
+                    </a>
+                   <% } %>
                   <% if (AE.findUrlByTitle(candidate.urls, "Web") != null) { %>
                     <a href="<%- AE.findUrlByTitle(candidate.urls, "Web").url %>" target="_blank" alt="Web">
                       Web
@@ -403,10 +409,12 @@
                 </div>
               </div>
             </div>
-            <% if (candidate.media_url.length > 0) { %>
-              <img class="cand-img" data-original="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
-            <% } else { %>
-              <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+            <% if (!primary_mode || primary_mode != "small-primary") { %>
+              <% if (candidate.media_url.length > 0) { %>
+                <img class="cand-img" data-original="<%- candidate.media_url %>" alt="<%- candidate.value %>" />
+              <% } else { %>
+                <img src="{{ static_path }}/themes/current/img/anon_icon.png" alt="<%- candidate.value %>" />
+              <% } %>
             <% } %>
           </div>
         </div>
