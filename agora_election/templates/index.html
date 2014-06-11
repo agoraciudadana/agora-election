@@ -35,7 +35,7 @@
   <script src="{{ static_path }}/libs/jquery-file-upload/jquery.ui.widget.js"></script>
   <script src="{{ static_path }}/libs/jquery-file-upload/jquery.iframe-transport.js"></script>
   <script src="{{ static_path }}/libs/jquery-file-upload/jquery.fileupload.js"></script>
-  
+
 
   <!-- dynamic data here -->
     <script>
@@ -454,13 +454,12 @@
             <p class="help-block">El teléfono móvil puede ser español o extranjero, ejemplos: 666 666 666, +41 777 777 777</p>
           </div>
         <% } else if (auth_method == "id-photo") { %>
-		  <div class="form-group">
-			<label for="dni">DNI (scan)</label>
-			<input id="fileupload" type="file" name="dni" data-url="api/v1/upload-dni/">
-			<p id="dni-status"></p>
-			<p class="help-block">El DNI scaneado</p>
-	      </div>
-        <% } %>
+          <div class="form-group">
+            <label for="dni">DNI (scan)</label>
+            <input id="fileupload" type="file" name="dni" data-url="api/v1/upload-dni/">
+            <p id="dni-status"></p>
+            <p class="help-block">El DNI scaneado</p>
+          </div>
         <% } %>
         <% if (show_postal_code) { %>
           <div class="checkbox form-group">
