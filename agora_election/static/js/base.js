@@ -45,7 +45,7 @@
         tlf = tlf.replace(/ /g, '');
         tlf = tlf.replace(/^0034/, "+34");
         tlf = tlf.replace(/^34/, "+34");
-        if (!/^\+34/.test(tlf)) {
+        if (!/^\+/.test(tlf)) {
             tlf = "+34" + tlf;
         }
         var regExp = new RegExp(app_data.tlf_no_rx);
