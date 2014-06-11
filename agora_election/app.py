@@ -270,7 +270,7 @@ def main():
         else:
             items = db.session.query(Voter)
 
-        table = PrettyTable(['id', 'modified', 'tlf', 'ip_addr', 'is_active',
+        table = PrettyTable(['id', 'modified', 'tlf', 'email', 'postal_code', 'ip_addr', 'is_active',
                              'token_guesses', 'message_id', 'status', 'election_id'])
 
         def str_status(i):
@@ -286,9 +286,9 @@ def main():
 
         print("%d rows:" % items.count())
         for i in items:
-            table.add_row([i.id, i.modified, i.tlf, i.ip, i.is_active,
-                           i.token_guesses, i.message_id, str_status(i),
-                           i.election_id])
+            table.add_row([i.id, i.modified, i.tlf, i.email, i.postal_code,
+                           i.ip, i.is_active, i.token_guesses, i.message_id,
+                           str_status(i), i.election_id])
         print(table)
         return
 
