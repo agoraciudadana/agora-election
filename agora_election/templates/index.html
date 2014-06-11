@@ -354,7 +354,11 @@
   <script type="text/underscore-template" id="template-candidates-list-view">
     <div class="candidates-header cf">
         <% if (!candidates || candidates != "not_primary") { %>
-          <h3>Candidaturas</h3>
+          <% if (primary_mode == "small-primary") { %>
+            <h3><%- election.questions[0].question %></h3><br/>
+          <% } else { %>
+            <h3>Candidaturas</h3>
+          <% } %>
         <% } else { %>
           <h3>Opciones</h3>
         <% } %>
