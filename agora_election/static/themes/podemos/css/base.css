@@ -54,7 +54,7 @@ body {
 }
 
 #header .headlines h2 {
-    color: rgb(140, 69, 147);
+    color: rgb(97, 45, 98);
     letter-spacing: 0.2rem;
     display: block;
     clear: both;
@@ -81,7 +81,7 @@ body {
 /* feature-block */
 
 .feature-block {
-    background-color: #8C4593;
+    background-color: #612d62;
     color: white;
     width: 100%;
     display: block;
