@@ -27,6 +27,7 @@ from flask.ext.babel import gettext, ngettext
 from flask.ext.captcha.models import CaptchaStore
 from flask import current_app
 from jinja2 import Markup
+from sqlalchemy.exc import InvalidRequestError, DBAPIError
 
 from sqlalchemy.orm import exc as sa_exc
 
@@ -86,11 +87,7 @@ def serializable_retry(func, max_num_retries=None):
             try:
                 ret = func(*args, **kwargs)
                 break
-            except Exception as e:
-                # only accept rollback related exception
-                if len(e.args) is 0 or not isinstance(e.args[0], str) or\
-                        'rollback' not in e.args[0]:
-                    raise e
+            except (InvalidRequestError, DBAPIError) as e:
                 db.session.rollback()
                 if retries > max_num_retries:
                     unset_serializable()
@@ -100,6 +97,8 @@ def serializable_retry(func, max_num_retries=None):
                 retries += 1
                 sleep_time = (initial_sleep_time**retries) * (random.random() + 0.5)
                 time.sleep(sleep_time * 0.001) # specified in seconds
+            except:
+                raise e
 
         unset_serializable()
         db.session.commit()
