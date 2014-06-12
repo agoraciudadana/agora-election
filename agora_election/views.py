@@ -297,12 +297,16 @@ def post_contact():
     if data is None:
         return error("invalid json", error_codename="not_json")
 
+    @serializable_retry
+    def captcha_validate(x):
+        return CaptchaStore.validate(data['captcha_key'], x.lower())
+
     # initial input checking
     input_checks = (
         ['name', lambda x: str_constraint(x, 5, 160)],
         ['body', lambda x: str_constraint(x, 10, 4000)],
         ['captcha_key', lambda x: str_constraint(x, rx_pattern="[0-9a-z]{40}")],
-        ['captcha_text', lambda x: CaptchaStore.validate(data['captcha_key'], x.lower())],
+        ['captcha_text', captcha_validate],
         ['email', email_constraint],
         ['tlf', lambda x: len(x) == 0 or str_constraint(
             x, rx_pattern=current_app.config.get('ALLOWED_TLF_NUMS_RX', None))],
