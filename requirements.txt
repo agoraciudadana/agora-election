@@ -3,7 +3,7 @@ Flask==0.10.1
 Flask-Babel==0.9
 Flask-Mail==0.9.0
 Flask-SQLAlchemy==1.0
-Flask-Captcha==0.1.6
+Flask-Captcha==0.1.7
 Jinja2==2.7.2
 MarkupSafe==0.18
 SQLAlchemy==0.9.3
