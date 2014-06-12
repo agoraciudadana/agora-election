@@ -25,7 +25,6 @@ from flask import Blueprint, request, make_response
 from flask import current_app
 
 RET_PIPE_CONTINUE = 0
-RET_PIPE_SUCCESS = 1
 EMAIL_RX = re.compile(
     r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
     # quoted-string, see also http://tools.ietf.org/html/rfc2822#section-3.2.5
@@ -182,7 +181,7 @@ def check_tlf_whitelisted(data):
                 ColorList.value == data["tlf"]).first()
     if item is not None:
         if item.action == ColorList.ACTION_WHITELIST:
-            return RET_PIPE_SUCCESS
+            data['whitelisted'] = True
         else:
             data["tlf_blacklisted"] = True
     else:
@@ -196,6 +195,9 @@ def check_ip_whitelisted(data):
     from app import db
     from models import ColorList
 
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
+
     ip_addr = data['ip_addr']
     items = db.session.query(ColorList)\
         .filter(ColorList.key == ColorList.KEY_IP,
@@ -203,7 +205,7 @@ def check_ip_whitelisted(data):
 
     for item in items:
         if item.action == ColorList.ACTION_WHITELIST:
-            return RET_PIPE_SUCCESS
+            data['whitelisted'] = True
 
     return RET_PIPE_CONTINUE
 
@@ -213,6 +215,9 @@ def check_ip_blacklisted(data):
     '''
     from app import db
     from models import ColorList
+
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
 
     ip_addr = data['ip_addr']
     # optimization: if we have already gone through the whitelisting checking
@@ -239,6 +244,9 @@ def check_tlf_blacklisted(data):
     from app import db
     from models import ColorList
 
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
+
     # optimization: if we have already gone through the whitelisting checking
     # we don't have do new queries
     if 'tlf_blacklisted' in data:
@@ -262,6 +270,9 @@ def check_tlf_total_max(data, total_max):
     '''
     from app import db
     from models import ColorList, Message
+
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
 
     ip_addr = data['ip_addr']
     item = db.session.query(Message)\
@@ -289,6 +300,9 @@ def check_tlf_day_max(data, day_max):
     from app import db
     from models import Message
 
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
+
     ip_addr = data['ip_addr']
     item = db.session.query(Message)\
         .filter(Message.tlf == data["tlf"],
@@ -306,6 +320,9 @@ def check_tlf_hour_max(data, hour_max):
     '''
     from app import db
     from models import Message
+
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
 
     ip_addr = data['ip_addr']
     item = db.session.query(Message)\
@@ -325,6 +342,9 @@ def check_tlf_expire_max(data):
     from app import db
     from models import Message
 
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
+
     ip_addr = data['ip_addr']
     secs = current_app.config.get('SMS_EXPIRE_SECS', 120)
     item = db.session.query(Message)\
@@ -343,6 +363,9 @@ def check_ip_total_max(data, total_max):
     '''
     from app import db
     from models import ColorList, Message
+
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
 
     ip_addr = data['ip_addr']
     item = db.session.query(Message)\
@@ -578,8 +601,6 @@ def execute_pipeline(data, pipeline = None):
 
     Checkers return either:
     * RET_PIPE_CONTINUE in which case next checker in the pipeline is called.
-    * RET_PIPE_SUCCESS in which case pipeline stops directly without an error.
-      Useful for whitelisting, for example.
     * anything else, in which case we assume it's an error, so the pipeline
       stops and returns that value.
     '''
@@ -598,8 +619,6 @@ def execute_pipeline(data, pipeline = None):
         ret = getattr(module, func_name)(**fargs)
         if ret == RET_PIPE_CONTINUE:
             continue
-        elif ret == RET_PIPE_SUCCESS:
-            return True
         else:
             return ret
 
