@@ -69,6 +69,7 @@ def config():
     app_flask.config.from_object("settings")
     app.config_from_object("settings")
 
+
     settings_file = os.environ.get('AGORA_ELECTION_SETTINGS', None)
     if settings_file is not None:
         if not os.path.isabs(settings_file):
@@ -103,293 +104,318 @@ def config():
     app_mail.init_app(app_flask)
     sentry = Sentry()
     sentry.init_app(app=app_flask)
+    app_captcha.init_app(app_flask)
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--createdb", help="create the database",
-                        action="store_true")
-    parser.add_argument("--resetdb", help="reset the database",
-                        action="store_true")
-    parser.add_argument("-c", "--console", help="agora-election command line",
-                        action="store_true")
-    parser.add_argument("-s", "--send", help="send sms action",
-                        action="store_true")
-    parser.add_argument("-w", "--whitelist", help="whitelist an item",
-                        action="store_true")
-    parser.add_argument("-b", "--blacklist", help="blacklist an item",
-                        action="store_true")
-    parser.add_argument("-m", "--message", help="message to be sent")
-    parser.add_argument("-i", "--ip", help="ip address")
-    parser.add_argument("-lc", "--list-colors",
-                        help="show black/white list", action="store_true")
-    parser.add_argument("-lv", "--list-voters",
-                        help="list voters", action="store_true")
-    parser.add_argument("-lm", "--list-messages",
-                        help="list messages", action="store_true")
-    parser.add_argument("-r", "--remove",
-                        help="remove item from black or white list",
-                        action="store_true")
-    parser.add_argument("-t", "--tlf", help="telephone number")
-    parser.add_argument("-f", "--filters", nargs='+', default=[],
-                        help="key==value(s) filters for queries")
-    pargs = parser.parse_args()
+    with app_flask.app_context():
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-d", "--createdb", help="create the database",
+                            action="store_true")
+        parser.add_argument("--resetdb", help="reset the database",
+                            action="store_true")
+        parser.add_argument("-c", "--console", help="agora-election command line",
+                            action="store_true")
+        parser.add_argument("-s", "--send", help="send sms action",
+                            action="store_true")
+        parser.add_argument("-w", "--whitelist", help="whitelist an item",
+                            action="store_true")
+        parser.add_argument("-b", "--blacklist", help="blacklist an item",
+                            action="store_true")
+        parser.add_argument("-m", "--message", help="message to be sent")
+        parser.add_argument("-i", "--ip", help="ip address")
+        parser.add_argument("-lc", "--list-colors",
+                            help="show black/white list", action="store_true")
+        parser.add_argument("-lv", "--list-voters",
+                            help="list voters", action="store_true")
+        parser.add_argument("-lm", "--list-messages",
+                            help="list messages", action="store_true")
+        parser.add_argument("-r", "--remove",
+                            help="remove item from black or white list",
+                            action="store_true")
+        parser.add_argument("-t", "--tlf", help="telephone number")
+        parser.add_argument("-f", "--filters", nargs='+', default=[],
+                            help="key==value(s) filters for queries")
+        parser.add_argument("-gc", "--gen-captchas", help="gen captchas",
+                            action="store_true")
+        parser.add_argument("-cc", "--clear-captchas", help="clear captchas",
+                            action="store_true")
+        parser.add_argument("--count-captchas", help="count pregenerated captchas",
+                            action="store_true")
+        pargs = parser.parse_args()
 
-    if "postgres" not in app_flask.config.get("SQLALCHEMY_DATABASE_URI", ""):
-        logging.warn("Warning: you need to use postgresql to guarantee that "
-                     "the correct isolation level is setup so that each "
-                     "voter can vote only once when there's a race-conditions")
+        if "postgres" not in app_flask.config.get("SQLALCHEMY_DATABASE_URI", ""):
+            logging.warn("Warning: you need to use postgresql to guarantee that "
+                        "the correct isolation level is setup so that each "
+                        "voter can vote only once when there's a race-conditions")
 
-    if pargs.createdb:
-        logging.info("creating the database: %s" % app_flask.config.get(
-            'SQLALCHEMY_DATABASE_URI', ''))
-        db.create_all()
-        return
-    if pargs.resetdb:
-        logging.info("reset the database: %s" % app_flask.config.get(
-            'SQLALCHEMY_DATABASE_URI', ''))
-        d = input("resetting the whole agora-election database. write YES to confirm: ")
-        if d != "YES":
-            print("You didn't confirm, NOT reseting the database..")
-            exit(1)
-        db.drop_all()
-        db.create_all()
-        return
-    elif pargs.console:
-        import ipdb; ipdb.set_trace()
-        return
-    elif pargs.send:
-        if not pargs.tlf or not pargs.message:
-            logging.error("You need to provide --tlf and --message!")
-            exit(1)
-        if pargs.tlf.startswith("+34"):
-            tlf = pargs.tlf
-        elif not pargs.tlf.startswith("00") and not pargs.tlf.startswith("+"):
-            tlf = "+34" + pargs.tlf
-        kwargs = dict(
-            receiver = tlf,
-            content = pargs.message
-        )
-        from views import token_generator
-        msg = Message(
-            tlf=tlf,
-            lang_code=app_flask.config.get("BABEL_DEFAULT_LOCALE", "en"),
-            token=pargs.message,
-            status=Message.STATUS_QUEUED
-        )
-        voter = Voter(
-            election_id=app_flask.config.get("CURRENT_ELECTION_ID", 0),
-            ip="127.0.0.1",
-            first_name="local",
-            last_name="local",
-            email="none",
-            tlf=tlf,
-            postal_code="-",
-            receive_mail_updates=False,
-            lang_code=msg.lang_code,
-            status=Voter.STATUS_CREATED,
-            message=msg,
-            is_active=True,
-            dni="-",
-        )
-        db.session.add(msg)
-        db.session.add(voter)
-        db.session.commit()
-        send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=pargs.message),
-            expires=app_flask.config.get('SMS_EXPIRE_SECS', 120))
-        return
-    elif pargs.list_colors:
-        key = None
-        action = None
-        value = None
-        if pargs.ip:
-            key = ColorList.KEY_IP
-            value = pargs.ip
-        elif pargs.tlf:
-            key = ColorList.KEY_TLF
-            value = pargs.tlf
-
-        action = None
-        if pargs.whitelist:
-            action = ColorList.ACTION_WHITELIST
-        elif pargs.blacklist:
-            action = ColorList.ACTION_BLACKLIST
-
-        if action is None and key is None:
-            items = db.session.query(ColorList)
-        elif key is not None:
-            items  = db.session.query(ColorList)\
-                .filter(ColorList.key == key, ColorList.value == value)
-        elif action is not None:
-            items = db.session.query(ColorList)\
-                .filter(ColorList.action == action)
-        else:
-            items = db.session.query(ColorList)\
-                .filter(ColorList.key == key,
-                        ColorList.action == action,
-                        ColorList.value == value)
-
-        filters=[]
-        for filter in pargs.filters:
-            key, value = filter.split("==")
-            filters.append(getattr(ColorList, key).__eq__(value))
-
-        if filters:
-            items = items.filter(*filters)
-
-        def str_action(task):
-            if task.action == ColorList.ACTION_WHITELIST:
-                ret = "whitelist"
-            elif task.action == ColorList.ACTION_BLACKLIST:
-                ret = "blacklist"
-            return "%s,%d" % (ret, task.action)
-
-        def str_key(task):
-            if task.key == ColorList.KEY_IP:
-                ret = "ip"
-            elif task.key == ColorList.KEY_TLF:
-                ret = "tlf"
-            return "%s,%d" % (ret, task.key)
-
-        table = PrettyTable(['id', 'action', 'key', 'value', 'created'])
-
-        print("%d rows:" % items.count())
-        for task in items:
-            table.add_row([str(task.id), str_action(task), str_key(task),
-                           task.value, task.created])
-        print(table)
-        return
-
-    elif pargs.list_voters:
-        filters=[]
-        for filter in pargs.filters:
-            key, value = filter.split("==")
-            filters.append(getattr(Voter, key).__eq__(value))
-
-        if filters:
-            items = db.session.query(Voter).filter(*filters)
-        else:
-            items = db.session.query(Voter)
-
-        table = PrettyTable(['id', 'modified', 'tlf', 'email', 'postal_code', 'ip_addr', 'is_active',
-                             'token_guesses', 'message_id', 'status', 'election_id'])
-
-        def str_status(i):
-            if i.status == Voter.STATUS_CREATED:
-                ret = "created"
-            elif i.status == Voter.STATUS_SENT:
-                ret = "sent"
-            if i.status == Voter.STATUS_AUTHENTICATED:
-                ret = "authenticated"
-            if i.status == Voter.STATUS_VOTED:
-                ret = "voted"
-            return "%s,%d" % (ret, i.status)
-
-        print("%d rows:" % items.count())
-        for i in items:
-            table.add_row([i.id, i.modified, i.tlf, i.email, i.postal_code,
-                           i.ip, i.is_active, i.token_guesses, i.message_id,
-                           str_status(i), i.election_id])
-        print(table)
-        return
-
-    elif pargs.list_messages:
-        filters=[]
-        for filter in pargs.filters:
-            key, value = filter.split("==")
-            filters.append(getattr(Message, key).__eq__(value))
-
-        if filters:
-            items = db.session.query(Message).filter(*filters)
-        else:
-            items = db.session.query(Message)
-
-        def str_status(i):
-            if i.status == Message.STATUS_QUEUED:
-                ret = "queued"
-            elif i.status == Message.STATUS_SENT:
-                ret = "sent"
-            elif i.status == Message.STATUS_IGNORE:
-                ret = "ignore"
-            return "%s,%d" % (ret, i.status)
-
-        table = PrettyTable(['id', 'modified', 'tlf', 'token',
-                             'status', 'ip'])
-
-        print("%d rows:" % items.count())
-        for i in items:
-            table.add_row([i.id, i.modified, i.tlf, i.token, str_status(i),
-                           i.ip])
-        print(table)
-        return
-
-    elif pargs.remove:
-        if not pargs.whitelist and not pargs.blacklist:
-            logging.error("You need to provide --blacklist or --whitelist!")
-            exit(1)
-        if not pargs.ip and not pargs.tlf:
-            logging.error("You need to provide --ip or --tlf!")
-            exit(1)
-        key = value = None
-        action = ColorList.ACTION_WHITELIST if pargs.whitelist else\
-                 ColorList.ACTION_BLACKLIST
-        if pargs.ip:
-            key = ColorList.KEY_IP
-            value = pargs.ip
-        elif pargs.tlf:
-            key = ColorList.KEY_TLF
-            value = pargs.tlf
-        items = db.session.query(ColorList)\
-            .filter(
-                    ColorList.key == key,
-                    ColorList.action == action,
-                    ColorList.value == value)
-        for item in items:
-            db.session.delete(item)
-
-        # when removing a blacklist, reset counters:
-        if pargs.blacklist:
-            if pargs.ip:
-                clause = getattr(Message, "ip").__eq__(pargs.ip)
-            else:
-                clause = getattr(Message, "tlf").__eq__(pargs.tlf)
-            items = db.session.query(Message).filter(clause)
-            for item in items:
-                item.status = Message.STATUS_IGNORE
-                db.session.add(item)
+        if pargs.createdb:
+            logging.info("creating the database: %s" % app_flask.config.get(
+                'SQLALCHEMY_DATABASE_URI', ''))
+            db.create_all()
+            return
+        if pargs.resetdb:
+            logging.info("reset the database: %s" % app_flask.config.get(
+                'SQLALCHEMY_DATABASE_URI', ''))
+            d = input("resetting the whole agora-election database. write YES to confirm: ")
+            if d != "YES":
+                print("You didn't confirm, NOT reseting the database..")
+                exit(1)
+            db.drop_all()
+            db.create_all()
+            return
+        elif pargs.console:
+            import ipdb; ipdb.set_trace()
+            return
+        elif pargs.send:
+            if not pargs.tlf or not pargs.message:
+                logging.error("You need to provide --tlf and --message!")
+                exit(1)
+            if pargs.tlf.startswith("+34"):
+                tlf = pargs.tlf
+            elif not pargs.tlf.startswith("00") and not pargs.tlf.startswith("+"):
+                tlf = "+34" + pargs.tlf
+            kwargs = dict(
+                receiver = tlf,
+                content = pargs.message
+            )
+            from views import token_generator
+            msg = Message(
+                tlf=tlf,
+                lang_code=app_flask.config.get("BABEL_DEFAULT_LOCALE", "en"),
+                token=pargs.message,
+                status=Message.STATUS_QUEUED
+            )
+            voter = Voter(
+                election_id=app_flask.config.get("CURRENT_ELECTION_ID", 0),
+                ip="127.0.0.1",
+                first_name="local",
+                last_name="local",
+                email="none",
+                tlf=tlf,
+                postal_code="-",
+                receive_mail_updates=False,
+                lang_code=msg.lang_code,
+                status=Voter.STATUS_CREATED,
+                message=msg,
+                is_active=True,
+                dni="-",
+            )
+            db.session.add(msg)
+            db.session.add(voter)
             db.session.commit()
-        db.session.commit()
-        return
+            send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=pargs.message),
+                expires=app_flask.config.get('SMS_EXPIRE_SECS', 120))
+            return
+        elif pargs.list_colors:
+            key = None
+            action = None
+            value = None
+            if pargs.ip:
+                key = ColorList.KEY_IP
+                value = pargs.ip
+            elif pargs.tlf:
+                key = ColorList.KEY_TLF
+                value = pargs.tlf
 
-    elif pargs.whitelist or pargs.blacklist:
-        action = ColorList.ACTION_WHITELIST if pargs.whitelist else\
-                 ColorList.ACTION_BLACKLIST
-        if pargs.ip:
-            key = ColorList.KEY_IP
-            value = pargs.ip
-        elif pargs.tlf:
-            key = ColorList.KEY_TLF
-            value = pargs.tlf
-        else:
-            logging.error("You need to provide --tlf or --ip!")
-            exit(1)
+            action = None
+            if pargs.whitelist:
+                action = ColorList.ACTION_WHITELIST
+            elif pargs.blacklist:
+                action = ColorList.ACTION_BLACKLIST
 
-        item = db.session.query(ColorList)\
-            .filter(ColorList.key == key,
-                    ColorList.action == action,
-                    ColorList.value == value).first()
-        if item is not None:
-            logging.warn("It's listed already that way, nothing to do!")
+            if action is None and key is None:
+                items = db.session.query(ColorList)
+            elif key is not None:
+                items  = db.session.query(ColorList)\
+                    .filter(ColorList.key == key, ColorList.value == value)
+            elif action is not None:
+                items = db.session.query(ColorList)\
+                    .filter(ColorList.action == action)
+            else:
+                items = db.session.query(ColorList)\
+                    .filter(ColorList.key == key,
+                            ColorList.action == action,
+                            ColorList.value == value)
+
+            filters=[]
+            for filter in pargs.filters:
+                key, value = filter.split("==")
+                filters.append(getattr(ColorList, key).__eq__(value))
+
+            if filters:
+                items = items.filter(*filters)
+
+            def str_action(task):
+                if task.action == ColorList.ACTION_WHITELIST:
+                    ret = "whitelist"
+                elif task.action == ColorList.ACTION_BLACKLIST:
+                    ret = "blacklist"
+                return "%s,%d" % (ret, task.action)
+
+            def str_key(task):
+                if task.key == ColorList.KEY_IP:
+                    ret = "ip"
+                elif task.key == ColorList.KEY_TLF:
+                    ret = "tlf"
+                return "%s,%d" % (ret, task.key)
+
+            table = PrettyTable(['id', 'action', 'key', 'value', 'created'])
+
+            print("%d rows:" % items.count())
+            for task in items:
+                table.add_row([str(task.id), str_action(task), str_key(task),
+                            task.value, task.created])
+            print(table)
             return
 
-        cl = ColorList(key=key, action=action, value=value)
-        db.session.add(cl)
-        db.session.commit()
-        return
+        elif pargs.list_voters:
+            filters=[]
+            for filter in pargs.filters:
+                key, value = filter.split("==")
+                filters.append(getattr(Voter, key).__eq__(value))
 
-    logging.info("using provider = %s" % app_flask.config.get(
-        'SMS_PROVIDER', None))
-    port = app_flask.config.get('SERVER_PORT', None)
-    app_flask.run(threaded=True, use_reloader=False, port=port, host="0.0.0.0")
+            if filters:
+                items = db.session.query(Voter).filter(*filters)
+            else:
+                items = db.session.query(Voter)
+
+            table = PrettyTable(['id', 'modified', 'tlf', 'email', 'postal_code', 'ip_addr', 'is_active',
+                                'token_guesses', 'message_id', 'status', 'election_id'])
+
+            def str_status(i):
+                if i.status == Voter.STATUS_CREATED:
+                    ret = "created"
+                elif i.status == Voter.STATUS_SENT:
+                    ret = "sent"
+                if i.status == Voter.STATUS_AUTHENTICATED:
+                    ret = "authenticated"
+                if i.status == Voter.STATUS_VOTED:
+                    ret = "voted"
+                return "%s,%d" % (ret, i.status)
+
+            print("%d rows:" % items.count())
+            for i in items:
+                table.add_row([i.id, i.modified, i.tlf, i.email, i.postal_code,
+                            i.ip, i.is_active, i.token_guesses, i.message_id,
+                            str_status(i), i.election_id])
+            print(table)
+            return
+
+        elif pargs.list_messages:
+            filters=[]
+            for filter in pargs.filters:
+                key, value = filter.split("==")
+                filters.append(getattr(Message, key).__eq__(value))
+
+            if filters:
+                items = db.session.query(Message).filter(*filters)
+            else:
+                items = db.session.query(Message)
+
+            def str_status(i):
+                if i.status == Message.STATUS_QUEUED:
+                    ret = "queued"
+                elif i.status == Message.STATUS_SENT:
+                    ret = "sent"
+                elif i.status == Message.STATUS_IGNORE:
+                    ret = "ignore"
+                return "%s,%d" % (ret, i.status)
+
+            table = PrettyTable(['id', 'modified', 'tlf', 'token',
+                                'status', 'ip'])
+
+            print("%d rows:" % items.count())
+            for i in items:
+                table.add_row([i.id, i.modified, i.tlf, i.token, str_status(i),
+                            i.ip])
+            print(table)
+            return
+
+        elif pargs.remove:
+            if not pargs.whitelist and not pargs.blacklist:
+                logging.error("You need to provide --blacklist or --whitelist!")
+                exit(1)
+            if not pargs.ip and not pargs.tlf:
+                logging.error("You need to provide --ip or --tlf!")
+                exit(1)
+            key = value = None
+            action = ColorList.ACTION_WHITELIST if pargs.whitelist else\
+                    ColorList.ACTION_BLACKLIST
+            if pargs.ip:
+                key = ColorList.KEY_IP
+                value = pargs.ip
+            elif pargs.tlf:
+                key = ColorList.KEY_TLF
+                value = pargs.tlf
+            items = db.session.query(ColorList)\
+                .filter(
+                        ColorList.key == key,
+                        ColorList.action == action,
+                        ColorList.value == value)
+            for item in items:
+                db.session.delete(item)
+
+            # when removing a blacklist, reset counters:
+            if pargs.blacklist:
+                if pargs.ip:
+                    clause = getattr(Message, "ip").__eq__(pargs.ip)
+                else:
+                    clause = getattr(Message, "tlf").__eq__(pargs.tlf)
+                items = db.session.query(Message).filter(clause)
+                for item in items:
+                    item.status = Message.STATUS_IGNORE
+                    db.session.add(item)
+                db.session.commit()
+            db.session.commit()
+            return
+
+        elif pargs.whitelist or pargs.blacklist:
+            action = ColorList.ACTION_WHITELIST if pargs.whitelist else\
+                    ColorList.ACTION_BLACKLIST
+            if pargs.ip:
+                key = ColorList.KEY_IP
+                value = pargs.ip
+            elif pargs.tlf:
+                key = ColorList.KEY_TLF
+                value = pargs.tlf
+            else:
+                logging.error("You need to provide --tlf or --ip!")
+                exit(1)
+
+            item = db.session.query(ColorList)\
+                .filter(ColorList.key == key,
+                        ColorList.action == action,
+                        ColorList.value == value).first()
+            if item is not None:
+                logging.warn("It's listed already that way, nothing to do!")
+                return
+
+            cl = ColorList(key=key, action=action, value=value)
+            db.session.add(cl)
+            db.session.commit()
+            return
+        elif pargs.clear_captchas:
+            from flask.ext.captcha.helpers import clear_images
+            from flask.ext.captcha.models import CaptchaStore
+            deleted = CaptchaStore.delete_all()
+            clear_images()
+            print("cleared %s db records" % deleted)
+            return
+        elif pargs.gen_captchas:
+            from flask.ext.captcha.helpers import init_captcha_dir, generate_images
+            init_captcha_dir()
+            count = generate_images(app_flask.config['CAPTCHA_PREGEN_MAX'])
+            print("created %s captchas" % count)
+            return
+        elif pargs.count_captchas:
+            from flask.ext.captcha.models import CaptchaStore
+            print("%d pregenerated captchas left" % db.session.query(CaptchaStore).count())
+            return
+
+        logging.info("using provider = %s" % app_flask.config.get(
+            'SMS_PROVIDER', None))
+        port = app_flask.config.get('SERVER_PORT', None)
+        app_flask.run(threaded=True, use_reloader=False, port=port, host="0.0.0.0")
 
 # needs to be called in celery too
 config()
