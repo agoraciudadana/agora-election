@@ -488,8 +488,8 @@ def return_vote_hmac(data):
     voter = Voter(
         election_id=curr_eid,
         ip=ip_addr,
-        first_name="-",
-        last_name="-",
+        first_name=data['first_name'],
+        last_name=data['last_name'],
         email="-",
         tlf="-",
         postal_code=data.get("postal_code", ""),
@@ -562,7 +562,7 @@ def mark_voted_in_minshu(data, **kwargs):
     )
     headers = {}
 
-    r = requests.post(url, data=data, headers=headers,
+    r = requests.post(url, data=json.dumps(data), headers=headers,
                       auth=(kwargs['minshu_user'], kwargs['minshu_pass']))
     if r.status_code == 200:
         return RET_PIPE_CONTINUE
