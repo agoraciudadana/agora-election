@@ -458,8 +458,8 @@ def check_minshu_census(data, **kwargs):
     )
     headers = {}
 
-    # TODO: use authentication
-    r = requests.get(url, headers=headers)
+    r = requests.get(url, headers=headers,
+                     auth=(kwargs['minshu_user'], kwargs['minshu_pass']))
     # DNI is new
     if r.status_code == 404:
         return RET_PIPE_CONTINUE
@@ -558,12 +558,12 @@ def mark_voted_in_minshu(data, **kwargs):
     )
     data = dict(
         value=hashed_dni,
-        extra=""
+        extra="%s %s" % (data['voter'].first_name, data['voter'].last_name)
     )
     headers = {}
 
-    # TODO: use authentication
-    r = requests.post(url, data=data, headers=headers)
+    r = requests.post(url, data=data, headers=headers,
+                      auth=(kwargs['minshu_user'], kwargs['minshu_pass']))
     if r.status_code == 200:
         return RET_PIPE_CONTINUE
     else:
