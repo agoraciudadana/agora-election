@@ -134,7 +134,7 @@
 
   <script type="text/underscore-template" id="template-approval-results-table-view">
     <h2>Pregunta: <%- question %></h2>
-    <p>Resultados en bruto:</p>
+    <p>Total de votos: <%- election.result.total_votes %> | total de votos en blanco: <%- election.result.counts[0].blank_votes %> | total de votos nulos: <%- election.result.counts[0].invalid_votes %></p>
     <table class="table">
       <thead>
         <tr>
@@ -210,18 +210,18 @@
     </table>
   </script>
 
-  <script type="text/underscore-template" id="template-candidates-approval-double-results-view">
+  <script type="text/underscore-template" id="template-candidates-approval-results-view">
     <div class="candidates-header cf">
         <h3>Lista de ganadores (en orden)</h3>
         <h4><a href="#results-table">Tabla de resultados</a></h4>
     </div>
     <div class="candidates-wrapper container-fluid">
-      <% for(var i = 0; i < election.result.counts[1].winners.length; i++) { %>
+      <% for(var i = 0; i < election.result.counts[0].winners.length; i++) { %>
         <% if (i > 1 && i % 2 == 0) { %>
           </div>
           <div class="candidates-wrapper container-fluid">
         <%  }
-            var winner_name = election.result.counts[1].winners[i];
+            var winner_name = election.result.counts[0].winners[i];
 
             var candidate = AE.getCandidateCount(
               winner_name,
@@ -229,7 +229,7 @@
 
             var candidate2 = AE.getCandidateCount(
               winner_name,
-              election.result.counts[1].answers);
+              election.result.counts[0].answers);
         %>
         <div class="col-xs-12 col-sm-6 candidate-item">
           <div class="cf">

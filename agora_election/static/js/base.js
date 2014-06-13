@@ -226,7 +226,7 @@
             if (app_data.election.tally_released_at_date == null) {
                 this.tmplCandidates = _.template($("#template-candidates-list-view").html());
             } else if (app_data.election.questions[0].tally_type == "APPROVAL") {
-                this.tmplCandidates = _.template($("#template-candidates-approval-double-results-view").html());
+                this.tmplCandidates = _.template($("#template-approval-results-table-view").html());
             } else if (app_data.election.questions[0].tally_type == "MEEK-STV") {
                 this.tmplCandidates = _.template($("#template-candidates-stv-results-view").html());
             }
@@ -236,12 +236,25 @@
 
         render: function() {
             if (app_data.election.tally_released_at_date == null &&
-                app_data.election.questions[0].randomize_answer_order)
+                app_data.election.questions[0].randomize_answer_order &&
+                app_data.election.questions[0].tally_type != "APPROVAL")
             {
                 app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
             }
             this.$el.html(this.template(app_data));
-            this.$el.find("#candidates-list").html(this.tmplCandidates(app_data));
+
+            if (app_data.election.questions[0].tally_type == "APPROVAL") {
+                var question = app_data.election.result.counts[0];
+                question.answers = _.sortBy(question.answers, function (a) {
+                    return -a.total_count;
+                });
+                question.candidates = app_data.candidates;
+                question.election = app_data.election;
+                this.$el.find("#candidates-list").append(this.tmplCandidates(question));
+            } else {
+                this.$el.find("#candidates-list").html(this.tmplCandidates(app_data));
+            }
+
             this.$el.find("img.cand-img").lazyload();
             this.delegateEvents();
             return this;
@@ -283,6 +296,7 @@
                         return -a.total_count;
                     });
                     question.candidates = app_data.candidates;
+                    question.election = null;
                     this.$el.find("#candidates-list").append(this.tmplApprovalTable(question));
                 } else if (question.tally_type == "MEEK-STV")
                 {
