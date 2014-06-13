@@ -243,7 +243,8 @@
             }
             this.$el.html(this.template(app_data));
 
-            if (app_data.election.questions[0].tally_type == "APPROVAL") {
+            if (app_data.election.questions[0].tally_type == "APPROVAL" &&
+                app_data.election.tally_released_at_date != null) {
                 var question = app_data.election.result.counts[0];
                 question.answers = _.sortBy(question.answers, function (a) {
                     return -a.total_count;
