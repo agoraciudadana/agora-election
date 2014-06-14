@@ -393,7 +393,9 @@ def check_ip_total_max_voters(data, total_max):
         return RET_PIPE_CONTINUE
 
     ip_addr = data['ip_addr']
-    item = db.session.query(Voter).filter(Voter.ip == ip_addr).count()
+    item = db.session.query(Voter).filter(
+        Voter.ip == ip_addr,
+        Voter.status == Voter.STATUS_VOTED).count()
     if item >= total_max:
         logging.warn("check_ip_total_max: blacklisting")
         cl = ColorList(action=ColorList.ACTION_BLACKLIST,
