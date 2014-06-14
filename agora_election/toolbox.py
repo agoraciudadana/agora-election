@@ -97,7 +97,7 @@ def serializable_retry(func, max_num_retries=None):
                 retries += 1
                 sleep_time = (initial_sleep_time**retries) * (random.random() + 0.5)
                 time.sleep(sleep_time * 0.001) # specified in seconds
-            except:
+            except Exception as e:
                 raise e
 
         unset_serializable()

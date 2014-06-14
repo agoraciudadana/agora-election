@@ -382,6 +382,28 @@ def check_ip_total_max(data, total_max):
         return error("Blacklisted", error_codename="blacklisted")
     return RET_PIPE_CONTINUE
 
+def check_ip_total_max_voters(data, total_max):
+    '''
+    if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
+    '''
+    from app import db
+    from models import ColorList, Voter
+
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
+
+    ip_addr = data['ip_addr']
+    item = db.session.query(Voter).filter(Voter.ip == ip_addr).count()
+    if item >= total_max:
+        logging.warn("check_ip_total_max: blacklisting")
+        cl = ColorList(action=ColorList.ACTION_BLACKLIST,
+                       key=ColorList.KEY_IP,
+                       value = ip_addr)
+        db.session.add(cl)
+        db.session.commit()
+        return error("Blacklisted", error_codename="blacklisted")
+    return RET_PIPE_CONTINUE
+
 def send_sms_pipe(data):
     '''
     check that the ip is not blacklisted, or that the tlf has already voted,
