@@ -127,6 +127,8 @@ def main():
                             help="show black/white list", action="store_true")
         parser.add_argument("-lv", "--list-voters",
                             help="list voters", action="store_true")
+        parser.add_argument("--remove-colors",
+                            help="remove all colors", action="store_true")
         parser.add_argument("-lm", "--list-messages",
                             help="list messages", action="store_true")
         parser.add_argument("-r", "--remove",
@@ -205,6 +207,16 @@ def main():
             db.session.commit()
             send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=pargs.message),
                 expires=app_flask.config.get('SMS_EXPIRE_SECS', 120))
+            return
+        elif pargs.remove_colors:
+            if pargs.whitelist:
+                action = ColorList.ACTION_WHITELIST
+            elif pargs.blacklist:
+                action = ColorList.ACTION_BLACKLIST
+
+            for item in db.session.query(ColorList).all():
+                db.session.delete(item)
+            db.session.commit()
             return
         elif pargs.list_colors:
             key = None
