@@ -211,6 +211,12 @@
         return "//www.youtube.com/embed/" + urlCode + "?referrer=" + app_data.parent_site.name;
     };
 
+    AE.roundFix = function (number, precision)
+    {
+        var multi = Math.pow(10, precision);
+        return Math.round( (number * multi).toFixed(precision + 1) ) / multi;
+    }
+
     /**
      * Home view - just renders the home page template with the app_data
      */
@@ -223,40 +229,53 @@
 
         initialize: function() {
             this.template = _.template($("#template-home-view").html());
-            if (app_data.election.tally_released_at_date == null) {
-                this.tmplCandidates = _.template($("#template-candidates-list-view").html());
-            } else if (app_data.election.questions[0].tally_type == "APPROVAL" ||
-                       app_data.election.questions[0].tally_type == "ONE_CHOICE") {
-                this.tmplCandidates = _.template($("#template-approval-results-table-view").html());
-            } else if (app_data.election.questions[0].tally_type == "MEEK-STV") {
-                this.tmplCandidates = _.template($("#template-candidates-stv-results-view").html());
-            }
             this.tmplCandModalBody = _.template($("#template-candidate-modal-body").html());
             this.render();
         },
 
         render: function() {
-            if (app_data.election.tally_released_at_date == null &&
-                app_data.election.questions[0].randomize_answer_order &&
-                (app_data.election.questions[0].tally_type != "APPROVAL" ||
-                app_data.election.questions[0].tally_type == "ONE_CHOICE"))
-            {
-                app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
-            }
-            this.$el.html(this.template(app_data));
 
-            if ((app_data.election.questions[0].tally_type == "APPROVAL" ||
-                app_data.election.questions[0].tally_type == "ONE_CHOICE") &&
-                app_data.election.tally_released_at_date != null) {
-                var question = app_data.election.result.counts[0];
-                question.answers = _.sortBy(question.answers, function (a) {
-                    return -a.total_count;
-                });
-                question.candidates = app_data.candidates;
-                question.election = app_data.election;
-                this.$el.find("#candidates-list").append(this.tmplCandidates(question));
-            } else {
-                this.$el.find("#candidates-list").html(this.tmplCandidates(app_data));
+            // if we haven't got results yet
+            if (app_data.election.tally_released_at_date == null) {
+                var tmpl = _.template($("#template-candidates-list-view").html());
+
+                // randomize order
+                var questions = app_data.election.questions;
+                for (var i = 0; i < questions.length; i++) {
+                    if (questions[i].randomize_answer_order) {
+                        questions[i].answers = $.shuffle(questions[i].answers);
+                    }
+                }
+                this.$el.html(this.template(app_data));
+                this.$el.find("#candidates-list").html(tmpl(app_data));
+            }
+
+            // if results are released
+            else {
+                this.$el.html(this.template(app_data));
+                var questions = app_data.election.questions;
+                for (var i = 0; i < questions.length; i++) {
+                    if (_.indexOf(["APPROVAL", "ONE_CHOICE"],
+                        questions[i].tally_type) != -1)
+                    {
+                        var tmpl = _.template(
+                            $("#template-approval-results-table-view").html());
+
+                        var data = app_data.election.result.counts[i];
+                        data.answers = _.sortBy(data.answers, function (a) {
+                            return -a.total_count;
+                        });
+                        data.candidates = app_data.candidates;
+                        data.election = app_data.election;
+                        this.$el.find("#candidates-list").append(tmpl(data));
+
+                    } else if (questions[i].tally_type == "MEEK-STV")
+                    {
+                        var tmpl = _.template($("#template-candidates-stv-results-view").html());
+                        this.$el.find("#candidates-list").append(tmpl(data));
+                    }
+                }
+
             }
 
             this.$el.find("img.cand-img").lazyload();

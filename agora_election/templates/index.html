@@ -134,11 +134,11 @@
 
   <script type="text/underscore-template" id="template-approval-results-table-view">
     <h2>Pregunta: <%- question %></h2>
-    <p>Total de votos: <%- election.result.total_votes %> | total de votos en blanco: <%- election.result.counts[0].blank_votes %> | total de votos nulos: <%- election.result.counts[0].invalid_votes %></p>
+    <p>Total de votos: <%- total_votes %> | total de votos en blanco: <%- blank_votes %> (<%- AE.roundFix((blank_votes *100.0) / total_votes, 2) %>%) | total de votos nulos: <%- invalid_votes %></p>
     <table class="table">
       <thead>
         <tr>
-          <th>#</th>
+          <th>Posición</th>
           <% if (!candidates || candidates != "not_primary") { %>
             <th>Candidato</th>
           <% } else { %>
@@ -151,13 +151,17 @@
         <% for(var i = 0; i < answers.length; i++) { %>
         <tr>
           <% var pos = _.indexOf(winners, answers[i].value); if (pos != -1) { %>
-            <td class="winner"><%- (pos + 1) %></td>
+            <td class="winner"><%- (pos + 1) %>º (ganador)</td>
             <td class="winner"><%- answers[i].value %></td>
-            <td class="winner"><%- answers[i].total_count %></td>
+            <td class="winner"><%- answers[i].total_count %>
+              (<%- AE.roundFix((answers[i].total_count *100.0) / total_votes, 2) %>%)
+            </td>
           <% } else { %>
             <td>-</td>
             <td><%- answers[i].value %></td>
-            <td><%- answers[i].total_count %></td>
+            <td><%- answers[i].total_count %>
+              (<%- AE.roundFix((answers[i].total_count *100.0) / total_votes, 2) %>%)
+            </td>
           <% } %>
         </tr>
         <% } %>
