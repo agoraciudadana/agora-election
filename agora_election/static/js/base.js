@@ -225,7 +225,8 @@
             this.template = _.template($("#template-home-view").html());
             if (app_data.election.tally_released_at_date == null) {
                 this.tmplCandidates = _.template($("#template-candidates-list-view").html());
-            } else if (app_data.election.questions[0].tally_type == "APPROVAL") {
+            } else if (app_data.election.questions[0].tally_type == "APPROVAL" ||
+                       app_data.election.questions[0].tally_type == "ONE_CHOICE") {
                 this.tmplCandidates = _.template($("#template-approval-results-table-view").html());
             } else if (app_data.election.questions[0].tally_type == "MEEK-STV") {
                 this.tmplCandidates = _.template($("#template-candidates-stv-results-view").html());
@@ -237,13 +238,15 @@
         render: function() {
             if (app_data.election.tally_released_at_date == null &&
                 app_data.election.questions[0].randomize_answer_order &&
-                app_data.election.questions[0].tally_type != "APPROVAL")
+                (app_data.election.questions[0].tally_type != "APPROVAL" ||
+                app_data.election.questions[0].tally_type == "ONE_CHOICE"))
             {
                 app_data.election.questions[0].answers = $.shuffle(app_data.election.questions[0].answers);
             }
             this.$el.html(this.template(app_data));
 
-            if (app_data.election.questions[0].tally_type == "APPROVAL" &&
+            if ((app_data.election.questions[0].tally_type == "APPROVAL" ||
+                app_data.election.questions[0].tally_type == "ONE_CHOICE") &&
                 app_data.election.tally_released_at_date != null) {
                 var question = app_data.election.result.counts[0];
                 question.answers = _.sortBy(question.answers, function (a) {
