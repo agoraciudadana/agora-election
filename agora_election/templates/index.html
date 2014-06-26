@@ -38,6 +38,9 @@
 
 
   <!-- dynamic data here -->
+    <style media="screen" type="text/css">
+      {{ custom_css|safe }}
+    </style>
     <script>
         var app_data = {{ data }};
     </script>
@@ -727,4 +730,7 @@
 
   <!-- real ours js code -->
   <script type="text/javascript" src="{{ static_path }}/js/base.js"></script>
+  <script>
+  {{ custom_js|safe }}
+  </script>
 </body>

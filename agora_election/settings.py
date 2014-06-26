@@ -213,6 +213,12 @@ STATIC_PATH = "/static"
 # either remote_addr or a specific header
 REAL_IP_GETTER = "remote_addr"
 
+# Insert here custom css styles that you might want to override defaults
+CUSTOM_CSS_STYLE = ""
+
+# Insert here any custom javascript that you might need
+CUSTOM_JAVASCRIPT = ""
+
 if os.path.isfile(os.path.join(ROOT_PATH, "custom_settings.py")):
     from custom_settings import *
 else:

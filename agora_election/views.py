@@ -363,4 +363,7 @@ def get_index():
     '''
     data_str = current_app.config.get('AGORA_ELECTION_DATA_STR', '')
     static_path = current_app.config.get('STATIC_PATH', '/static')
-    return render_template('index.html', data=data_str, static_path=static_path)
+    custom_js = current_app.config.get('CUSTOM_JAVASCRIPT', '')
+    custom_css = current_app.config.get('CUSTOM_CSS', '')
+    return render_template('index.html', data=data_str, static_path=static_path,
+                           custom_js=custom_js, custom_css=custom_css)
