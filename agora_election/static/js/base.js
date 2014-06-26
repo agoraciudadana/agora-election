@@ -91,6 +91,8 @@
     var main = function() {
         app.modal_view = new AE.ModalDialogView();
 
+        $("title").html(app_data.election.pretty_name);
+
         // process app_data
         var rx = /^(https?:\/\/[^/]+)\/[^/]+\/[^/]+\/election\//
         app_data.election.base_url = rx.exec(app_data.url)[1];
