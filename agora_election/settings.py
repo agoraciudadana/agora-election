@@ -23,12 +23,14 @@ ALLOWED_TLF_NUMS_RX = "^\+34[67]\\d{8}$"
 
 # checks pipeline for sending an sms, you can modify and tune it at will
 SMS_CHECKS_PIPELINE = (
-    ("checks.check_has_not_voted", None),
+    ("checks.register_request", None),
+    ("checks.check_tlf_has_not_voted", None),
     ("checks.check_dni_has_not_voted", None),
     ("checks.check_tlf_whitelisted", None),
     ("checks.check_ip_whitelisted", None),
     ("checks.check_ip_blacklisted", None),
     ("checks.check_tlf_blacklisted", None),
+    ("checks.check_ip_total_unconfirmed_requests_max", dict(total_max=30)),
     ("checks.check_ip_total_max", dict(total_max=8)),
     ("checks.check_tlf_total_max", dict(total_max=7)),
     ("checks.check_tlf_day_max", dict(day_max=5)),
@@ -41,8 +43,10 @@ SMS_CHECKS_PIPELINE = (
 # example checks pipeline for id-num authentication
 '''
 SMS_CHECKS_PIPELINE = (
+    ("checks.register_request", None),
     ("checks.check_ip_whitelisted", None),
     ("checks.check_ip_blacklisted", None),
+    ("checks.check_ip_total_unconfirmed_requests_max", dict(total_max=30)),
     ("checks.check_ip_total_max", dict(total_max=3)),
     ("checks.check_minshu_census", dict(
         base_url="http://example.com",
@@ -53,6 +57,33 @@ SMS_CHECKS_PIPELINE = (
 )
 '''
 
+
+# example checks pipeline to check against a small census
+'''
+
+SMS_CHECKS_PIPELINE = (
+    ("checks.register_request", None),
+    ("checks.check_tlf_has_not_voted", None),
+    ("checks.check_dni_has_not_voted", None),
+    ("checks.check_tlf_expire_max", None),
+    ("checks.check_tlf_whitelisted", None),
+    ("checks.check_ip_whitelisted", None),
+    ("checks.check_ip_blacklisted", None),
+    ("checks.check_tlf_blacklisted", None),
+    ("checks.check_ip_total_unconfirmed_requests_max", dict(total_max=30)),
+    ("checks.check_ip_total_max", dict(total_max=8)),
+    ("checks.check_tlf_total_max", dict(total_max=7)),
+    ("checks.check_tlf_day_max", dict(day_max=5)),
+    ("checks.check_tlf_hour_max", dict(hour_max=3)),
+    ("checks.check_tlf_expire_max", None),
+    ("checks.check_id_and_postal_code_csv_census", None),
+    ("checks.send_sms_pipe", None),
+)
+
+# NOTE: that check_id_and_postal_code_csv_census depends on the following var:
+from toolbox import read_csv_to_dicts
+CSV_CENSUS = read_csv_to_dicts("census.csv")
+'''
 
 NOTIFY_VOTE_PIPELINE = (
     ("checks.check_id_auth", None),

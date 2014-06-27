@@ -25,10 +25,34 @@ class Voter(db.Model):
     '''
     __tablename__ = 'voter'
 
+    # Everytime an user request to identify, we register it in the database with
+    # this status, even if it fails for whatever reason (for example if it's
+    # in the blacklist)
+    STATUS_REQUESTED = -1
+
+    # This is the status set to a voter when he is elegible to be sent an SMS
+    # and we have sent the send-sms task to celery, but celery has not processed
+    # it yet
     STATUS_CREATED = 0
+
+    # This is the status set when celery has already sent to the SMS provider
+    # the task of sending an SMS to a voter. Note that currently we don't check
+    # in background if the SMS provider really sends the SMS.
     STATUS_SENT = 1
+
+    # Status set when the user has correctly authenticated using the one time
+    # password sent via SMS
     STATUS_AUTHENTICATED = 2
+
+    # Status set when agora-ciudadana has notified us to mark the voter as voted
+    # This happens when the user has already entered the voting booth and sent
+    # the vote.
+    # IMPORTANT: Any successful vote will necessarily have this status.
     STATUS_VOTED = 3
+
+    # Status set to a Voter that was previously in status "requested" when we
+    # remove an ip from the blacklist
+    STATUS_REQUESTED_IGNORE = -2
 
     id = db.Column(db.Integer, db.Sequence('voter_id_seq'), primary_key=True)
 

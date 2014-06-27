@@ -295,6 +295,10 @@ def main():
                                 'token_guesses', 'message_id', 'status', 'election_id'])
 
             def str_status(i):
+                if i.status == Voter.STATUS_REQUESTED_IGNORE:
+                    ret = "req-ignore"
+                if i.status == Voter.STATUS_REQUESTED:
+                    ret = "requested"
                 if i.status == Voter.STATUS_CREATED:
                     ret = "created"
                 elif i.status == Voter.STATUS_SENT:
@@ -369,6 +373,7 @@ def main():
 
             # when removing a blacklist, reset counters:
             if pargs.blacklist:
+                # reset message counters
                 if pargs.ip:
                     clause = getattr(Message, "ip").__eq__(pargs.ip)
                 else:
@@ -377,7 +382,18 @@ def main():
                 for item in items:
                     item.status = Message.STATUS_IGNORE
                     db.session.add(item)
-                db.session.commit()
+
+                # reset counter for requested status in voters
+                if pargs.ip:
+                    clause = getattr(Voter, "ip").__eq__(pargs.ip)
+                else:
+                    clause = getattr(Voter, "tlf").__eq__(pargs.tlf)
+                items = db.session.query(Voter).filter(
+                    clause, Voter.status == Voter.STATUS_REQUESTED)
+                for item in items:
+                    item.status = Voter.STATUS_REQUESTED_IGNORE
+                    item.is_active = False
+                    db.session.add(item)
             db.session.commit()
             return
 

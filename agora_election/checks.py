@@ -126,7 +126,46 @@ def int_constraint(val, min_val=None, max_val=None):
         return False
     return True
 
-def check_has_not_voted(data):
+def register_request(data):
+    '''
+    register the request in the Voter database with STATUS_REQUESTED
+
+    You can move this pipe before or after check_*_blacklisted in the pipeline,
+    depending on if you get too many blacklisted requests to avoid too many
+    writes on the database
+    '''
+    from app import db
+    from models import Voter
+
+    ip_addr = data['ip_addr']
+
+    # disable older registration attempts for this tlf
+    curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+
+    # create voter and send sms
+    voter = Voter(
+        election_id=curr_eid,
+        ip=ip_addr,
+        first_name=data["first_name"],
+        last_name=data["last_name"],
+        email=data.get("email", ""),
+        tlf=data.get("tlf", ""),
+        postal_code=data.get("postal_code", ""),
+        receive_mail_updates=data["receive_updates"],
+        lang_code=current_app.config.get("BABEL_DEFAULT_LOCALE", "en"),
+        status=Voter.STATUS_REQUESTED,
+        message=None,
+        is_active=True,
+        dni=data["dni"].upper(),
+    )
+
+    db.session.add(voter)
+    db.session.commit()
+
+    data['requested_voter'] = voter
+    return RET_PIPE_CONTINUE
+
+def check_tlf_has_not_voted(data):
     '''
     check that tlf should have not voted
     '''
@@ -359,7 +398,8 @@ def check_tlf_expire_max(data):
 
 def check_ip_total_max(data, total_max):
     '''
-    if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
+    if the ip has been sent more than <total_max> messages that have not been
+    authenticated, blacklist it
     '''
     from app import db
     from models import ColorList, Message
@@ -384,7 +424,8 @@ def check_ip_total_max(data, total_max):
 
 def check_ip_total_max_voters(data, total_max):
     '''
-    if tlf has been sent an sms in < SMS_EXPIRE_SECS, error
+    if the ip address has successfully voted more than <total_max> times,
+    blacklist it
     '''
     from app import db
     from models import ColorList, Voter
@@ -396,6 +437,31 @@ def check_ip_total_max_voters(data, total_max):
     item = db.session.query(Voter).filter(
         Voter.ip == ip_addr,
         Voter.status == Voter.STATUS_VOTED).count()
+    if item >= total_max:
+        logging.warn("check_ip_total_max: blacklisting")
+        cl = ColorList(action=ColorList.ACTION_BLACKLIST,
+                       key=ColorList.KEY_IP,
+                       value = ip_addr)
+        db.session.add(cl)
+        db.session.commit()
+        return error("Blacklisted", error_codename="blacklisted")
+    return RET_PIPE_CONTINUE
+
+
+def check_ip_total_unconfirmed_requests_max(data, total_max):
+    '''
+    if the ip has sent more than <total_max> unconfirmed requests, blacklist it
+    '''
+    from app import db
+    from models import ColorList, Voter
+
+    if data.get('whitelisted', False) == True:
+        return RET_PIPE_CONTINUE
+
+    ip_addr = data['ip_addr']
+    item = db.session.query(Voter).filter(
+        Voter.ip == ip_addr,
+        Voter.status == Voter.STATUS_REQUESTED).count()
     if item >= total_max:
         logging.warn("check_ip_total_max: blacklisting")
         cl = ColorList(action=ColorList.ACTION_BLACKLIST,
@@ -420,10 +486,12 @@ def send_sms_pipe(data):
 
     # disable older registration attempts for this tlf
     curr_eid = current_app.config.get("CURRENT_ELECTION_ID", 0)
+    voter = data['requested_voter']
     old_voters = db.session.query(Voter)\
         .filter(Voter.election_id == curr_eid,
                 Voter.tlf == data["tlf"],
-                Voter.is_active == True)
+                Voter.is_active == True,
+                Voter.id != voter.id)
     for ov in old_voters:
         ov.is_active = False
         db.session.add(ov)
@@ -439,22 +507,9 @@ def send_sms_pipe(data):
         status=Message.STATUS_QUEUED,
     )
 
-    # create voter and send sms
-    voter = Voter(
-        election_id=curr_eid,
-        ip=ip_addr,
-        first_name=data["first_name"],
-        last_name=data["last_name"],
-        email=data.get("email", ""),
-        tlf=data["tlf"],
-        postal_code=data.get("postal_code", ""),
-        receive_mail_updates=data["receive_updates"],
-        lang_code=msg.lang_code,
-        status=Voter.STATUS_CREATED,
-        message=msg,
-        is_active=True,
-        dni=data["dni"].upper(),
-    )
+    # set voter to created and send SMS
+    voter.message=msg
+    voter.status=Voter.STATUS_CREATED
 
     db.session.add(voter)
     db.session.add(msg)
@@ -493,6 +548,29 @@ def check_minshu_census(data, **kwargs):
                      error_codename="already_voted")
     else:
         return error("Service unavailable", error_codename="unavailable")
+
+def check_id_and_postal_code_csv_census(data):
+    '''
+    Checks that the ID and the CP match an entry in a CSV census
+
+    NOTE: depends on the CSV_CENSUS var to be set in settings, as in this
+    example:
+
+    from toolbox import read_csv_to_dicts
+    CSV_CENSUS = read_csv_to_dicts("census.csv")
+    '''
+    voter_id = data["dni"].upper()
+    if data["dni"].upper() not in current_app.config["CSV_CENSUS"]:
+        return error("Voter not in census", field="dni",
+                     error_codename="not_in_census")
+
+    voter = current_app.config["CSV_CENSUS"][voter_id]
+    postal, _ = voter["POSTAL LOCALIDAD"].split(" ")
+
+    if data.get("postal_code", "") != int(postal):
+        return error("Invalid postal code", field="postal_code",
+                     error_codename="invalid_postal_code")
+    return RET_PIPE_CONTINUE
 
 def return_vote_hmac(data):
     '''

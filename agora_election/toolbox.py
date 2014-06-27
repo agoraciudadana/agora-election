@@ -19,6 +19,7 @@
 import json
 import random
 import time
+import codecs
 from functools import partial
 
 from flask import Blueprint, request, make_response, render_template, url_for
@@ -105,3 +106,42 @@ def serializable_retry(func, max_num_retries=None):
         return ret
 
     return partial(wrap, max_num_retries)
+
+def read_csv_to_dicts(path, sep=";", key_column=0):
+    '''
+    Given a file in CSV format, convert it to a dictionary.
+    Example file (example.csv):
+
+    ID,Name,Comment
+    1,Fulanito de tal,Nothing of interest
+    2,John Doe,
+
+    This file would be converted into the following if you call to
+    read_csv_to_dicts("example.csv", sep=","):
+    {
+        "1": {
+            "ID": "1",
+            "Name": "Fulanito de tal",
+            "Comment": "Nothing of interest"
+        },
+        "2": {
+            "ID": "1",
+            "Name": "Fulanito de tal",
+            "Comment": ""
+        }
+    }
+    '''
+    ret = dict()
+    n = 0
+    with codecs.open(path, mode='r', encoding="utf-8", errors='strict') as f:
+        headers = f.readline().split(sep)
+        n += 1
+        for line in f:
+            line = line.rstrip()
+            n += 1
+            item = dict()
+            values = line.split(sep)
+            for key, value in zip(headers, values):
+                item[key] = value
+            ret[values[key_column]] = item
+    return ret

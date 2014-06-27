@@ -654,6 +654,13 @@
                 ' hace nada, espera a que te llegue y cuando te llegue ' +
                 '<a href="#verify-sms">pincha aquí para ' +
                 'verificar tu código SMS</a>.', false);
+            } else if(data.error_codename == "invalid_postal_code") {
+                self.showErrorMessage('El código postal que has indicado ' +
+                'no coincide con el que nosotros tenemos registrado. ¿seguro ' +
+                'que es correcto?.', true);
+            } else if(data.error_codename == "not_in_census") {
+                self.showErrorMessage('Tu DNI no nos consta como votante ' +
+                '¿seguro que indicaste un número de DNI correcto?', true);
             } else {
                 self.showErrorMessage('Ha ocurrido un error interno enviando el ' +
                 'formulario. Por favor, ponte en <a href="#contact">contacto ' +
