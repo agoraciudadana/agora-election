@@ -160,10 +160,10 @@ SHOW_POSTAL_CODE = True
 
 AGORA_ELECTION_DATA = dict(
     parent_site=dict(
-        name="www.podemos.info",
-        url="//www.podemos.info",
+        name="www.example.com",
+        url="//www.example.com",
     ),
-    subtitle="Una candidatura popular y ciudadana",
+    subtitle="This is a text that makes you look good",
     url="https://local.dev/edulix/hola/election/hola5/vote",
     start_voting="20 marzo, 10:00",
     end_voting="27 marzo, 10:00",
@@ -173,12 +173,12 @@ AGORA_ELECTION_DATA = dict(
     tlf_no_rx=ALLOWED_TLF_NUMS_RX,
     static_pages=STATIC_PAGES,
     contact=dict(
-        email="agora@agoravoting.com",
-        twitter_username="agoravoting"
+        email="agora@example.com",
+        twitter_username="example"
     ),
     tos=dict(
         title="He leído y acepto las condiciones",
-        text="De acuerdo con lo dispuesto en la Ley Orgánica 15/1999, de 13 de diciembre, de protección de datos de carácter personal, informamos que los datos personales recogidos aquí serán incorporados a un fichero titularidad de la Asociación por la Participación Social y Cultural con CIF G8693671 creada para esta la gestión administrativa de esta iniciativa. El fichero está inscrito en el Registro General de la Agencia Española de Protección de Datos. Mediante el envío del formulario existente en esta página web, el/la remitente presta su consentimiento al tratamiento automatizado de los datos incluidos en el mismo. Nos comprometemos asimismo al uso responsable y confidencial de los datos, garantizando que los datos de las/los usuarios se tratarán de acuerdo con las exigencias legales. En ningún caso los datos facilitados serán objeto de venta ni cesión a terceros. Podrá ejercitar los derechos de acceso, rectificación, cancelación y oposición establecidos en dicha Ley a través de correo electrónica, adjuntando fotocopia de su DNI/Pasaporte, en la siguiente dirección: participasocialcultural@gmail.com"
+        text="Lorem ipsum"
     ),
     auth_method=AUTH_METHOD,
     min_age=MIN_AGE,
