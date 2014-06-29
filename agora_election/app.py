@@ -107,6 +107,7 @@ def config():
     app_captcha.init_app(app_flask)
 
 def main():
+    from toolbox import format_print_table_output
     with app_flask.app_context():
         parser = argparse.ArgumentParser()
         parser.add_argument("-d", "--createdb", help="create the database",
@@ -143,6 +144,9 @@ def main():
                             action="store_true")
         parser.add_argument("--count-captchas", help="count pregenerated captchas",
                             action="store_true")
+        parser.add_argument("-F", "--output-format", default="table",
+                            help="format for output. options: table "
+                            "(default), csv, json")
         pargs = parser.parse_args()
 
         if "postgres" not in app_flask.config.get("SQLALCHEMY_DATABASE_URI", ""):
@@ -271,13 +275,12 @@ def main():
                     ret = "tlf"
                 return "%s,%d" % (ret, task.key)
 
-            table = PrettyTable(['id', 'action', 'key', 'value', 'created'])
-
-            print("%d rows:" % items.count())
-            for task in items:
-                table.add_row([str(task.id), str_action(task), str_key(task),
-                            task.value, task.created])
-            print(table)
+            format_print_table_output(
+                output_format=pargs.output_format,
+                table_header=['id', 'action', 'key', 'value', 'created'],
+                items=items,
+                row_getter=lambda r: [str(r.id), str_action(r), str_key(r),
+                                      r.value, r.created])
             return
 
         elif pargs.list_voters:
@@ -290,9 +293,6 @@ def main():
                 items = db.session.query(Voter).filter(*filters)
             else:
                 items = db.session.query(Voter)
-
-            table = PrettyTable(['id', 'modified', 'tlf', 'email', 'postal_code', 'ip_addr', 'is_active',
-                                'token_guesses', 'message_id', 'status', 'election_id'])
 
             def str_status(i):
                 if i.status == Voter.STATUS_REQUESTED_IGNORE:
@@ -309,12 +309,16 @@ def main():
                     ret = "voted"
                 return "%s,%d" % (ret, i.status)
 
-            print("%d rows:" % items.count())
-            for i in items:
-                table.add_row([i.id, i.modified, i.tlf, i.email, i.postal_code,
-                            i.ip, i.is_active, i.token_guesses, i.message_id,
-                            str_status(i), i.election_id])
-            print(table)
+            format_print_table_output(
+                output_format=pargs.output_format,
+                table_header=['id', 'modified', 'tlf', 'email', 'postal_code',
+                              'ip_addr', 'is_active', 'token_guesses',
+                              'message_id', 'status', 'election_id'],
+                items=items,
+                row_getter=lambda i: [i.id, i.modified, i.tlf, i.email,
+                                      i.postal_code, i.ip, i.is_active,
+                                      i.token_guesses, i.message_id,
+                                      str_status(i), i.election_id])
             return
 
         elif pargs.list_messages:
@@ -337,14 +341,12 @@ def main():
                     ret = "ignore"
                 return "%s,%d" % (ret, i.status)
 
-            table = PrettyTable(['id', 'modified', 'tlf', 'token',
-                                'status', 'ip'])
-
-            print("%d rows:" % items.count())
-            for i in items:
-                table.add_row([i.id, i.modified, i.tlf, i.token, str_status(i),
-                            i.ip])
-            print(table)
+            format_print_table_output(
+                output_format=pargs.output_format,
+                table_header=['id', 'modified', 'tlf', 'token', 'status', 'ip'],
+                items=items,
+                row_getter=lambda i: [i.id, i.modified, i.tlf, i.token,
+                                      str_status(i), i.ip])
             return
 
         elif pargs.remove:

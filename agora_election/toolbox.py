@@ -29,8 +29,9 @@ from flask.ext.captcha.models import CaptchaStore
 from flask import current_app
 from jinja2 import Markup
 from sqlalchemy.exc import InvalidRequestError, DBAPIError
-
 from sqlalchemy.orm import exc as sa_exc
+
+from prettytable import PrettyTable
 
 from checks import *
 from app import db, app_mail
@@ -145,3 +146,40 @@ def read_csv_to_dicts(path, sep=";", key_column=0):
                 item[key] = value
             ret[values[key_column]] = item
     return ret
+
+def format_print_table_output(output_format, table_header, items, row_getter,
+                              **kwargs):
+    '''
+    Use this to format the output of a table.
+
+    Options:
+    * output_format (str): Values allowed: 'table', 'csv', 'json'
+    * table_header (list): list of strings for the table header
+    * items: iterable list of items to be shown
+    * row_getter (func): function that receives an item from 'items' and returns
+      a list of strings to be shown as a row
+    * kwargs: more options. you can specify the "separator" character for csv
+      format, for example (comma by default)
+    '''
+    if output_format == "table":
+        table = PrettyTable(table_header)
+        print("%d rows:" % items.count())
+        for item in items:
+            table.add_row(row_getter(item))
+        print(table)
+    elif output_format == 'csv':
+        def l_str_join(sep, l):
+            return sep.join([str(i) for i in l])
+
+        sep = kwargs.get('separator', ',')
+        print(l_str_join(sep, table_header))
+        for item in items:
+            print(l_str_join(sep, row_getter(item)))
+    else: # json
+        l = []
+        for item in items:
+            row = row_getter(item)
+            l.append(dict([(key, str(val))
+                           for key, val in zip(table_header, row)]))
+
+        print(json.dumps(l, indent=4))
