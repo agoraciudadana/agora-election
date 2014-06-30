@@ -549,9 +549,9 @@ def check_minshu_census(data, **kwargs):
     else:
         return error("Service unavailable", error_codename="unavailable")
 
-def check_id_and_postal_code_csv_census(data):
+def check_id_in_csv_census(data):
     '''
-    Checks that the ID and the CP match an entry in a CSV census
+    Checks that the ID matches an entry in a CSV census
 
     NOTE: depends on the CSV_CENSUS var to be set in settings, as in this
     example:
@@ -563,13 +563,6 @@ def check_id_and_postal_code_csv_census(data):
     if data["dni"].upper() not in current_app.config["CSV_CENSUS"]:
         return error("Voter not in census", field="dni",
                      error_codename="not_in_census")
-
-    voter = current_app.config["CSV_CENSUS"][voter_id]
-    postal, _ = voter["POSTAL LOCALIDAD"].split(" ")
-
-    if data.get("postal_code", "") != int(postal):
-        return error("Invalid postal code", field="postal_code",
-                     error_codename="invalid_postal_code")
     return RET_PIPE_CONTINUE
 
 def return_vote_hmac(data):

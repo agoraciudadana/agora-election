@@ -76,11 +76,11 @@ SMS_CHECKS_PIPELINE = (
     ("checks.check_tlf_day_max", dict(day_max=5)),
     ("checks.check_tlf_hour_max", dict(hour_max=3)),
     ("checks.check_tlf_expire_max", None),
-    ("checks.check_id_and_postal_code_csv_census", None),
+    ("checks.check_id_in_csv_census", None),
     ("checks.send_sms_pipe", None),
 )
 
-# NOTE: that check_id_and_postal_code_csv_census depends on the following var:
+# NOTE: that check_id_in_csv_census depends on the following var:
 from toolbox import read_csv_to_dicts
 CSV_CENSUS = read_csv_to_dicts("census.csv")
 '''
