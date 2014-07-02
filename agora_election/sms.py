@@ -30,7 +30,7 @@ class SMSProvider(object):
     def __init__(self):
         pass
 
-    def send_sms(self, dest, msg):
+    def send_sms(self, dest, msg, is_audio=False):
         '''
         Sends sms to one or multiple destinations (if the dest is an array,
         untested)
@@ -63,9 +63,10 @@ class SMSProvider(object):
 class ConsoleSMSProvider(SMSProvider):
     provider_name = "console"
 
-    def send_sms(self, receiver, content):
-        logging.info("sending message '%(msg)s' to '%(dest)s'" % dict(
-            msg=content, dest=receiver))
+    def send_sms(self, receiver, content, is_audio):
+        logging.info("sending message '%(msg)s' to '%(dest)s' "
+            "(is_audio=%(is_audio)s)" % dict(
+                msg=content, dest=receiver, is_audio=str(is_audio)))
 
 class AltiriaSMSProvider(SMSProvider):
     '''
@@ -94,7 +95,7 @@ class AltiriaSMSProvider(SMSProvider):
         self.url = app_flask.config.get('SMS_URL', '')
         self.sender_id = app_flask.config.get('SMS_SENDER_ID', '')
 
-    def send_sms(self, receiver, content):
+    def send_sms(self, receiver, content, is_audio):
 
         data = {
             'cmd': 'sendsms',
@@ -188,11 +189,13 @@ class EsendexSMSProvider(SMSProvider):
     # template xml
     msg_template = """<?xml version='1.0' encoding='UTF-8'?>
         <messages>
-        <accountreference>%s</accountreference>
+        <accountreference>%(accountreference)s</accountreference>
         <message>
-        <to>%s</to>
-        <body>%s</body>
-        <from>%s</from>
+        <type>%(msg_type)s</type>
+        %(extra)s
+        <to>%(to)s</to>
+        <body>%(body)s</body>
+        <from>%(sender)s</from>
         </message>
         </messages>"""
 
@@ -202,12 +205,25 @@ class EsendexSMSProvider(SMSProvider):
         self.password = app_flask.config.get('SMS_PASSWORD', '')
         self.url = app_flask.config.get('SMS_URL', '')
         self.sender_id = app_flask.config.get('SMS_SENDER_ID', '')
+        self.lang_code = app_flask.config.get('SMS_VOICE_LANG_CODE', '')
 
         self.auth = (self.login, self.password)
 
-    def send_sms(self, receiver, content):
+    def send_sms(self, receiver, content, is_audio):
+        if is_audio:
+            msg_type = 'Voice'
+            extra = "<lang>%s</lang>\n" % self.lang_code
+        else:
+            msg_type = 'SMS'
+            extra = ""
 
-        data = self.msg_template % (self.domain_id, receiver, content, self.sender_id)
+        data = self.msg_template % dict(
+            accountreference=self.domain_id,
+            msg_type=msg_type,
+            to=receiver,
+            body=content,
+            sender=self.sender_id,
+            extra=extra)
         logging.debug("sending message.." + str(data))
         r = requests.post(self.url, data=data, headers=self.headers, auth=self.auth)
 

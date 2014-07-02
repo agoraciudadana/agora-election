@@ -147,6 +147,8 @@ def main():
         parser.add_argument("-F", "--output-format", default="table",
                             help="format for output. options: table "
                             "(default), csv, json")
+        parser.add_argument("-a", "--audio-message", action="store_true",
+                            help="when sending a message, mark it as audio")
         pargs = parser.parse_args()
 
         if "postgres" not in app_flask.config.get("SQLALCHEMY_DATABASE_URI", ""):
@@ -209,7 +211,9 @@ def main():
             db.session.add(msg)
             db.session.add(voter)
             db.session.commit()
-            send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=pargs.message),
+
+            send_sms.apply_async(kwargs=dict(msg_id=msg.id,
+                    token=pargs.message, is_audio=pargs.audio_message),
                 expires=app_flask.config.get('SMS_EXPIRE_SECS', 120))
             return
         elif pargs.remove_colors:

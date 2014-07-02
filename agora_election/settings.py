@@ -233,6 +233,10 @@ SMS_LOGIN = ''
 SMS_PASSWORD = ''
 SMS_URL = 'http://www.altiria.net/api/http'
 SMS_SENDER_ID = ''
+# Voice only (works in esendex): The default language to use for all Voice SMS
+# messages in this request. Currently supports: en-GB (English UK),
+# en-AU(English-Australian), fr-FR (French), es-ES (Spanish) and de-DE (German).
+SMS_VOICE_LANG_CODE = 'es-ES'
 
 ########### mail
 

@@ -24,7 +24,7 @@ from app import app, app_flask
 from sms import SMSProvider
 
 @app.task
-def send_sms(msg_id, token):
+def send_sms(msg_id, token, is_audio):
     '''
     Sends an sms with a given content to the receiver
     '''
@@ -65,4 +65,4 @@ def send_sms(msg_id, token):
 
     # actually send the sms
     provider = SMSProvider.get_instance()
-    provider.send_sms(msg.tlf, content)
+    provider.send_sms(msg.tlf, content, is_audio)

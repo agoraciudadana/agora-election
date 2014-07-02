@@ -480,20 +480,26 @@ def generate_token(data, land_line_rx=False):
     Example for the land_line_rx argument:
     land_line_rx=re.compile("+34[89]")
 
-    It stores the token in data['token']
+    It stores the token in data['token'] and a boolean specifying if the message
+    should be audio in data['is_audio']
     '''
     from toolbox import token_generator
     if land_line_rx is not None:
-        token = token_generator(is_audio_token=land_line_rx.match(data['tlf']))
+        is_audio = land_line_rx.match(data['tlf'])
     else:
-        token = token_generator()
+        is_audio = False
+
+    token = token_generator(is_audio_token=is_audio)
     data['token'] = token
+    data['is_audio'] = is_audio
     return RET_PIPE_CONTINUE
 
 def send_sms_pipe(data):
     '''
     check that the ip is not blacklisted, or that the tlf has already voted,
     and finally set the return value
+
+    NOTE: Requires that the pipeline has executed generate_token or similar.
     '''
     from app import db
     from models import Voter, Message
@@ -532,11 +538,10 @@ def send_sms_pipe(data):
     db.session.add(msg)
     db.session.commit()
 
-    print("\n\ntoken is %s" % data["token"])
-
-    send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=data['token']),
+    send_sms.apply_async(kwargs=dict(
+        msg_id=msg.id, token=data['token'], is_audio=data['is_audio']),
         countdown=current_app.config.get('SMS_DELAY', 1),
-        expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
+        expires=current_app.config.get('SMS_EXPIRE_SECS', 120),)
 
     return make_response("", 200)
 
