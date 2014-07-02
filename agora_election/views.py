@@ -149,6 +149,9 @@ def post_sms_auth():
     if data is None:
         return error("invalid json", error_codename="not_json")
 
+    # ignore spaces. can appear in audio token
+    data['token'] = data.get('token', '').replace(' ', '')
+
     # initial input checking
     input_checks = (
         ['tlf', lambda x: str_constraint(

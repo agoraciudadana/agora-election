@@ -520,8 +520,8 @@ def send_sms_pipe(data):
         ov.is_active = False
         db.session.add(ov)
 
-    # create the message to be sent
-    token_hash = hash_token(data['token'])
+    # create the message to be sent. note, that we ignore spaces in the token
+    token_hash = hash_token(data['token'].replace(" ", ""))
     msg = Message(
         tlf=data["tlf"],
         ip=ip_addr,

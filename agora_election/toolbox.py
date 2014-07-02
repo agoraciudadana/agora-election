@@ -59,7 +59,7 @@ def token_generator(is_audio_token=False):
     if not is_audio_token:
         return get_random_string(8, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
     else: #use only numbers: large numbers (8 chars always)
-        return get_random_string(1, '123456789') + get_random_string(7, '0123456789')
+        return " ".join([get_random_string(2, '123456789') for i in range(4)])
 
 def set_serializable():
     # if using postgres, then we check concurrency

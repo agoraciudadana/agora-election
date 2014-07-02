@@ -749,8 +749,7 @@
                 dni = $("#dni").val().trim();
             }
 
-            var sms_code = $("#sms-code").val().trim().toUpperCase();
-
+            var sms_code = $("#sms-code").val().trim().toUpperCase().replace(/ /g, "");
             // start checking
             if (sms_code.length != 8)
             {
