@@ -62,6 +62,12 @@ def token_generator(is_audio_token=False):
         return " ".join([get_random_string(2, '123456789') for i in range(4)])
 
 def set_serializable():
+    # if we use rowlock, this should do nothing
+    is_rowlock = (current_app.config.get("SERIALIZATION_MODE",
+        "SERIALIZED") == "ROWLOCK")
+    if is_rowlock:
+        return
+
     # if using postgres, then we check concurrency
     if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
         import psycopg2
@@ -72,6 +78,12 @@ def set_serializable():
             psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
 
 def unset_serializable():
+    # if we use rowlock, this should do nothing
+    is_rowlock = (current_app.config.get("SERIALIZATION_MODE",
+        "SERIALIZED") == "ROWLOCK")
+    if is_rowlock:
+        return
+
     # if using postgres, then we check concurrency
     if "postgres" in current_app.config.get("SQLALCHEMY_DATABASE_URI", ""):
         import psycopg2
@@ -88,8 +100,14 @@ def serializable_retry(func, max_num_retries=None):
     '''
     def wrap(max_num_retries, *args, **kwargs):
         if max_num_retries is None:
-            max_num_retries = current_app.config.get(
-                'MAX_NUM_SERIALIZED_RETRIES', 5)
+            # when we use rowlock, MAX_NUM_SERIALIZED_RETRIES setting is ignored
+            is_rowlock = (current_app.config.get("SERIALIZATION_MODE",
+                "SERIALIZED") == "ROWLOCK")
+            if is_rowlock:
+                max_num_retries = 1
+            else:
+                max_num_retries = current_app.config.get(
+                    'MAX_NUM_SERIALIZED_RETRIES', 5)
 
         retries = 1
         initial_sleep_time = 5 # miliseconds

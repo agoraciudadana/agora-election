@@ -175,7 +175,14 @@ def post_sms_auth():
                     Voter.is_active == True)
         if voters.count() == 0:
             return error("Voter has not any sms", error_codename="sms_notsent")
-        voter = voters.first()
+
+        is_rowlock = (current_app.config.get("SERIALIZATION_MODE",
+            "SERIALIZED") == "ROWLOCK")
+        if is_rowlock:
+            voters = voters.with_lockmode("update").all()
+            voter = voters[0]
+        else:
+            voter = voters.first()
 
         # check token has not too many guesses or has expired
         expire_time = current_app.config.get('SMS_TOKEN_EXPIRE_SECS', 60*10)
@@ -183,6 +190,7 @@ def post_sms_auth():
 
         if voter.token_guesses >= current_app.config.get("MAX_TOKEN_GUESSES", 3) or\
                 voter.message.created <= expire_dt:
+            db.session.commit()
             return error("Voter provided invalid token, please try a new one",
                         error_codename="need_new_token")
 

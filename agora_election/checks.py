@@ -651,7 +651,7 @@ def check_id_auth(data):
                 Voter.status == Voter.STATUS_AUTHENTICATED,
                 Voter.is_active == True,
                 Voter.id == int(data['identifier']))
-    if voters.count() == 0:
+    if voters.count() != 1:
         return error("Invalid identifier", error_codename="invalid_id")
 
     # check token
@@ -660,7 +660,14 @@ def check_id_auth(data):
     if not constant_time_compare(data["sha1_hmac"], hmac):
         return error("Invalid hmac", error_codename="invalid_hmac")
 
-    voter = voters.first()
+    is_rowlock = (current_app.config.get("SERIALIZATION_MODE",
+        "SERIALIZED") == "ROWLOCK")
+    if is_rowlock:
+        voters = voters.with_lockmode("update").all()
+        voter = voters[0]
+    else:
+        voter = voters.first()
+
     data['voter'] = voter
     return RET_PIPE_CONTINUE
 

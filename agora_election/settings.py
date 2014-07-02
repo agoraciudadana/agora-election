@@ -21,6 +21,16 @@ TASKS_DELAY = 1
 # registration will only allow numbers with this format
 ALLOWED_TLF_NUMS_RX = "^\+34[67]\\d{8}$"
 
+# Method to serialize the critical paths (like "mark as voted" or "create
+# voting booth token"). You can either use:
+# - "ROWLOCK" which locks only the affected rows (new)
+# - "SERIALIZED" which makes all critical path transactions serialized (slower,
+#   more tested though)
+SERIALIZATION_MODE = "ROWLOCK"
+
+# number of retries when SERIALIZATION_MODE is "SERIALIZED". Ignored otherwise.
+MAX_NUM_SERIALIZED_RETRIES = 5
+
 # checks pipeline for sending an sms, you can modify and tune it at will
 REGISTER_CHECKS_PIPELINE = (
     ("checks.register_request", None),
@@ -39,7 +49,6 @@ REGISTER_CHECKS_PIPELINE = (
     ("checks.generate_token", dict(land_line_rx=re.compile("^\+34[89]"))),
     ("checks.send_sms_pipe", None),
 )
-
 
 # example checks pipeline for id-num authentication
 '''
