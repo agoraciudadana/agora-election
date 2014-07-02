@@ -147,9 +147,38 @@ def main():
         parser.add_argument("-F", "--output-format", default="table",
                             help="format for output. options: table "
                             "(default), csv, json")
+        parser.add_argument("-of", "--output-fields", default="",
+                            help="list the names separated by commas of the "
+                            "output fields for listings. Each listing has a "
+                            "reasonable default.")
         parser.add_argument("-a", "--audio-message", action="store_true",
                             help="when sending a message, mark it as audio")
         pargs = parser.parse_args()
+
+        def row_getter(row, fields_format, fields):
+            '''
+            Given a row, return it as a list for the fields given and using the
+            field_format data to format each field. When a field
+
+            * "row" must be straight from the database
+            * "fields_format" is a dictionary wher the key is the field name and
+              value a function that receives the row and returns the string for
+              that field.
+            * fields is the list of fields to get
+
+            Example:
+            fields_format = dict(id=lambda r: str(r.id))
+
+            row_getter(row, fields_format, ['id', 'name'])
+            # -> returns something like ['3', 'john doe']
+            '''
+            ret = []
+            for field in fields:
+                if field in fields_format:
+                    ret.append(fields_format[field](row))
+                else:
+                    ret.append(getattr(row, field))
+            return ret
 
         if "postgres" not in app_flask.config.get("SQLALCHEMY_DATABASE_URI", ""):
             logging.warn("Warning: you need to use postgresql to guarantee that "
@@ -279,12 +308,22 @@ def main():
                     ret = "tlf"
                 return "%s,%d" % (ret, task.key)
 
+            if pargs.output_fields is "":
+                fields = ['id', 'action', 'key', 'value', 'created']
+            else:
+                fields = pargs.output_fields.split(',')
+
+            fields_formatting = {
+                "id": lambda r:str(r.id),
+                "action":lambda r: str_action(r),
+                "key": lambda r: str_key(r)
+            }
+
             format_print_table_output(
                 output_format=pargs.output_format,
-                table_header=['id', 'action', 'key', 'value', 'created'],
+                table_header=fields,
                 items=items,
-                row_getter=lambda r: [str(r.id), str_action(r), str_key(r),
-                                      r.value, r.created])
+                row_getter=lambda r: row_getter(r, fields_formatting, fields))
             return
 
         elif pargs.list_voters:
@@ -313,16 +352,22 @@ def main():
                     ret = "voted"
                 return "%s,%d" % (ret, i.status)
 
+            if pargs.output_fields is "":
+                fields = ['id', 'modified', 'tlf', 'email', 'postal_code',
+                          'ip', 'is_active', 'token_guesses', 'message_id',
+                          'status', 'election_id']
+            else:
+                fields = pargs.output_fields.split(',')
+
+            fields_formatting = {
+                "status": lambda r:str_status(r)
+            }
+
             format_print_table_output(
                 output_format=pargs.output_format,
-                table_header=['id', 'modified', 'tlf', 'email', 'postal_code',
-                              'ip_addr', 'is_active', 'token_guesses',
-                              'message_id', 'status', 'election_id'],
+                table_header=fields,
                 items=items,
-                row_getter=lambda i: [i.id, i.modified, i.tlf, i.email,
-                                      i.postal_code, i.ip, i.is_active,
-                                      i.token_guesses, i.message_id,
-                                      str_status(i), i.election_id])
+                row_getter=lambda r: row_getter(r, fields_formatting, fields))
             return
 
         elif pargs.list_messages:
@@ -345,12 +390,21 @@ def main():
                     ret = "ignore"
                 return "%s,%d" % (ret, i.status)
 
+            if pargs.output_fields is "":
+                fields = ['id', 'modified', 'tlf', 'token', 'status', 'ip']
+            else:
+                fields = pargs.output_fields.split(',')
+
+            fields_formatting = {
+                "status": lambda r:str_status(r)
+            }
+
             format_print_table_output(
                 output_format=pargs.output_format,
-                table_header=['id', 'modified', 'tlf', 'token', 'status', 'ip'],
+                table_header=fields,
                 items=items,
-                row_getter=lambda i: [i.id, i.modified, i.tlf, i.token,
-                                      str_status(i), i.ip])
+                row_getter=lambda r: row_getter(r, fields_formatting, fields))
+
             return
 
         elif pargs.remove:
