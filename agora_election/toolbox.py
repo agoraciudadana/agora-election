@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import re
 import random
 import time
 import codecs
@@ -153,7 +154,20 @@ def read_csv_to_dicts(path, sep=";", key_column=0):
             values = line.split(sep)
             for key, value in zip(headers, values):
                 item[key] = value
-            ret[values[key_column]] = item
+
+            # parse id num..
+            id_num = values[key_column].upper().strip()
+            id_num = re.sub("[^0-9A-Z]", '', id_num)
+
+            if id_num[0] not in 'XYZ':
+                id_num = re.sub("[^0-9]", '', id_num)
+                # recalc letter just in case..
+                mod_letters = 'TRWAGMYFPDXBNJZSQVHLCKE'
+                id_num = id_num + mod_letters[int(id_num) % 23]
+                if len(id_num) < 9:
+                    id_num = "0"*(9-len(id_num)) + id_num
+
+            ret[id_num] = item
     return ret
 
 def format_print_table_output(output_format, table_header, items, row_getter,
