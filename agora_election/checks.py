@@ -485,7 +485,7 @@ def generate_token(data, land_line_rx=False):
     '''
     from toolbox import token_generator
     if land_line_rx is not None:
-        is_audio = land_line_rx.match(data['tlf'])
+        is_audio = land_line_rx.match(data['tlf']) is not None
     else:
         is_audio = False
 
