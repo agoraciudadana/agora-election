@@ -44,12 +44,21 @@ def get_ip(request):
     else:
         return request.headers[getter]
 
-def token_generator():
+def token_generator(is_audio_token=False):
     '''
-    Generate an user token string. 8 alfanumeric characters. We do not allow
-    confusing characters: 0,O,I,1
+    Generate an user token string.
+
+    If is_audio_token is False, it a string of 8 alfanumeric characters. We do
+    not allow confusing characters: 0,O,I,1.
+
+    If is_audio_token is True, the it generates string of 8 numeric characters.
+    The string always starts with a non-zero number, so it's guaranteed to be
+    8 characters long (and thus there are 90 million possibilities)
     '''
-    return get_random_string(8, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+    if not is_audio_token:
+        return get_random_string(8, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+    else: #use only numbers: large numbers (8 chars always)
+        return get_random_string(1, '123456789') + get_random_string(7, '0123456789')
 
 def set_serializable():
     # if using postgres, then we check concurrency

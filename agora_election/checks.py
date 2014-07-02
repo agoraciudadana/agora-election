@@ -472,6 +472,24 @@ def check_ip_total_unconfirmed_requests_max(data, total_max):
         return error("Blacklisted", error_codename="blacklisted")
     return RET_PIPE_CONTINUE
 
+def generate_token(data, land_line_rx=False):
+    '''
+    Generates a token. It tells token_generator to generate an audio-friendly
+    token if land_line_rx is not null and matches the tlf number.
+
+    Example for the land_line_rx argument:
+    land_line_rx=re.compile("+34[89]")
+
+    It stores the token in data['token']
+    '''
+    from toolbox import token_generator
+    if land_line_rx is not None:
+        token = token_generator(is_audio_token=land_line_rx.match(data['tlf']))
+    else:
+        token = token_generator()
+    data['token'] = token
+    return RET_PIPE_CONTINUE
+
 def send_sms_pipe(data):
     '''
     check that the ip is not blacklisted, or that the tlf has already voted,
@@ -479,7 +497,7 @@ def send_sms_pipe(data):
     '''
     from app import db
     from models import Voter, Message
-    from toolbox import hash_token, token_generator
+    from toolbox import hash_token
     from tasks import send_sms
 
     ip_addr = data['ip_addr']
@@ -497,8 +515,7 @@ def send_sms_pipe(data):
         db.session.add(ov)
 
     # create the message to be sent
-    token = token_generator()
-    token_hash = hash_token(token)
+    token_hash = hash_token(data['token'])
     msg = Message(
         tlf=data["tlf"],
         ip=ip_addr,
@@ -515,7 +532,9 @@ def send_sms_pipe(data):
     db.session.add(msg)
     db.session.commit()
 
-    send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=token),
+    print("\n\ntoken is %s" % data["token"])
+
+    send_sms.apply_async(kwargs=dict(msg_id=msg.id, token=data['token']),
         countdown=current_app.config.get('SMS_DELAY', 1),
         expires=current_app.config.get('SMS_EXPIRE_SECS', 120))
 
@@ -681,7 +700,7 @@ def execute_pipeline(data, pipeline = None):
     '''
     Executes a pipeline of functions.
 
-    If pipeline is empty, it  uses the config parameter SMS_CHECKS_PIPELINE by
+    If pipeline is empty, it  uses the config parameter REGISTER_CHECKS_PIPELINE by
     default. The pipeline must be a list of pairs. Each pair contains
     (checker_path, params), where checker is the path to the module and
     function name of the checker, and params is either None or a dictionary
@@ -700,7 +719,7 @@ def execute_pipeline(data, pipeline = None):
       stops and returns that value.
     '''
     if pipeline is None:
-        pipeline = current_app.config.get('SMS_CHECKS_PIPELINE', [])
+        pipeline = current_app.config.get('REGISTER_CHECKS_PIPELINE', [])
 
     for checker_path, kwargs in pipeline:
         # get access to the function

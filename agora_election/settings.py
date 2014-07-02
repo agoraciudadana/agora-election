@@ -22,7 +22,7 @@ TASKS_DELAY = 1
 ALLOWED_TLF_NUMS_RX = "^\+34[67]\\d{8}$"
 
 # checks pipeline for sending an sms, you can modify and tune it at will
-SMS_CHECKS_PIPELINE = (
+REGISTER_CHECKS_PIPELINE = (
     ("checks.register_request", None),
     ("checks.check_tlf_has_not_voted", None),
     ("checks.check_dni_has_not_voted", None),
@@ -36,13 +36,14 @@ SMS_CHECKS_PIPELINE = (
     ("checks.check_tlf_day_max", dict(day_max=5)),
     ("checks.check_tlf_hour_max", dict(hour_max=3)),
     ("checks.check_tlf_expire_max", None),
+    ("checks.generate_token", dict(land_line_rx=re.compile("^\+34[89]"))),
     ("checks.send_sms_pipe", None),
 )
 
 
 # example checks pipeline for id-num authentication
 '''
-SMS_CHECKS_PIPELINE = (
+REGISTER_CHECKS_PIPELINE = (
     ("checks.register_request", None),
     ("checks.check_ip_whitelisted", None),
     ("checks.check_ip_blacklisted", None),
@@ -61,7 +62,7 @@ SMS_CHECKS_PIPELINE = (
 # example checks pipeline to check against a small census
 '''
 
-SMS_CHECKS_PIPELINE = (
+REGISTER_CHECKS_PIPELINE = (
     ("checks.register_request", None),
     ("checks.check_tlf_has_not_voted", None),
     ("checks.check_dni_has_not_voted", None),
@@ -77,6 +78,7 @@ SMS_CHECKS_PIPELINE = (
     ("checks.check_tlf_hour_max", dict(hour_max=3)),
     ("checks.check_tlf_expire_max", None),
     ("checks.check_id_in_csv_census", None),
+    ("checks.generate_token", dict(land_line_rx=re.compile("^\+34[89]"))),
     ("checks.send_sms_pipe", None),
 )
 
@@ -85,6 +87,11 @@ from toolbox import read_csv_to_dicts
 CSV_CENSUS = read_csv_to_dicts("census.csv")
 '''
 
+
+# this pipeline is used when receiving a vote. It should check that the vote is
+# alright and pass if everything is ok.
+# Functions in the pipeline receive as the data argument the POST request sent
+# to POST /notify_vote/
 NOTIFY_VOTE_PIPELINE = (
     ("checks.check_id_auth", None),
     ("checks.mark_id_authenticated", None),
@@ -112,7 +119,7 @@ SMS_EXPIRE_SECS = 120
 SMS_MESSAGE = "%(server_name)s: your token is: %(token)s"
 
 # number of guesses for one token
-MAX_TOKEN_GUESSES = 5
+MAX_TOKEN_GUESSES = 3
 
 # timeframe within which a token is said to be valid
 SMS_TOKEN_EXPIRE_SECS = 60*10
