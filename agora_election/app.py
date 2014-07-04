@@ -505,7 +505,7 @@ def main():
             return
         elif pargs.print_election:
             print(json.dumps(
-                app_flask.config.get('AGORA_ELECTION_DATA', {}), indent=4))
+                app_flask.config.get('AGORA_ELECTION_DATA', {})['election'], indent=4))
             return
 
         logging.info("using provider = %s" % app_flask.config.get(
