@@ -153,6 +153,10 @@ def main():
                             "reasonable default.")
         parser.add_argument("-a", "--audio-message", action="store_true",
                             help="when sending a message, mark it as audio")
+        parser.add_argument("-pe", "--print-election", action="store_true",
+                            help="gets election data from "
+                            "AGORA_ELECTION_DATA_URL settings and prints it in"
+                            "json. Useful to retrieve it and tune/modify it")
         pargs = parser.parse_args()
 
         def row_getter(row, fields_format, fields):
@@ -498,6 +502,10 @@ def main():
         elif pargs.count_captchas:
             from flask.ext.captcha.models import CaptchaStore
             print("%d pregenerated captchas left" % db.session.query(CaptchaStore).count())
+            return
+        elif pargs.print_election:
+            print(json.dumps(
+                app_flask.config.get('AGORA_ELECTION_DATA', {}), indent=4))
             return
 
         logging.info("using provider = %s" % app_flask.config.get(
